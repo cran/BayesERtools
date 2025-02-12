@@ -25,6 +25,7 @@ This function performs k-fold cross-validation using the appropriate model
 development function based on the class of the \code{ermod} object.
 }
 \examples{
+\dontshow{if (BayesERtools:::.if_run_ex_eval_mod()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
 data(d_sim_binom_cov_hgly2)
 
@@ -42,5 +43,5 @@ cv_results <- run_kfold_cv(ermod_bin, k = 3, seed = 123)
 
 print(cv_results)
 }
-
+\dontshow{\}) # examplesIf}
 }

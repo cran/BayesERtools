@@ -31,8 +31,7 @@ library(dplyr)
 set.seed(1234) # Needed to stablize div id
 
 # Saved csv from README.Rmd
-tab_mod <-
-  readr::read_csv("data/supported_models.csv", show_col_types = FALSE)
+tab_mod <- read.csv("data/supported_models.csv")
 
 tab_mod |>
   select(-.row_id) |>

@@ -26,6 +26,16 @@ ermod_bin <- dev_ermod_bin(
   chains = 2, iter = 1000
 )
 
+ermod_bin_wo_cov <- dev_ermod_bin(
+  data = df_er_ae_covsel_test,
+  var_resp = "AEFLAG",
+  var_exposure = "AUCss_1000",
+  verbosity_level = 0,
+  # Below option to make the test fast
+  chains = 2, iter = 1000
+)
+
+set.seed(1234)
 ermod_emax_w_cov <-
   dev_ermod_emax(
     data = data_er_cont_cov,
@@ -51,6 +61,7 @@ ermod_bin_emax <-
     seed = 1
   ))
 
+# Test ------------------------------------------------------------------------
 test_that("loo", {
   loo_ermod_bin <- loo(ermod_bin)
   loo_ermod_emax_w_cov <- suppressWarnings(loo(ermod_emax_w_cov))
@@ -100,4 +111,54 @@ test_that("extract_coef_exp_ci", {
       c(.lower = 0.1717, .upper = 1.01064),
       tolerance = 0.001
     )
+  expect_error(extract_coef_exp_ci(ermod_emax_w_cov), "extract_coef_exp_ci")
+})
+
+
+test_that("print.ermod prints correct information", {
+  out <- cli::cli_fmt({
+    print(ermod_bin)
+  })
+  expect_true(any(grepl("Binary ER model", out)))
+  expect_true(any(grepl("Use \\`plot_er\\(\\)\\` to visualize ER curve", out)))
+  expect_true(any(grepl("Developed model", out)))
+})
+
+# plot.ermod_bin
+test_that("plot.ermod_bin calls plot_er", {
+  if (.if_run_ex_plot_er()) {
+    expect_silent(plot.ermod_bin(ermod_bin_wo_cov))
+  }
+})
+
+# Additional extract function tests
+test_that("extract functions", {
+  expect_equal(extract_data.ermod(ermod_bin), ermod_bin$data)
+  expect_equal(extract_mod.ermod(ermod_bin), ermod_bin$mod)
+  expect_equal(extract_var_resp.ermod(ermod_bin), ermod_bin$var_resp)
+  expect_equal(extract_var_exposure.ermod(ermod_bin), ermod_bin$var_exposure)
+  expect_equal(extract_var_cov.ermod(ermod_bin), ermod_bin$var_cov)
+  expect_equal(
+    extract_var_cov.ermod(ermod_emax_w_cov),
+    unlist(ermod_emax_w_cov$l_var_cov)
+  )
+  expect_equal(
+    extract_exp_sel_list_model.ermod_exp_sel(ermod_bin_emax),
+    ermod_bin_emax$l_mod_exposures
+  )
+  expect_equal(
+    extract_exp_sel_comp.ermod_exp_sel(ermod_bin_emax),
+    ermod_bin_emax$loo_comp_exposures
+  )
+  expect_equal(
+    extract_var_selected.ermod_cov_sel(ermod_bin_emax),
+    ermod_bin_emax$var_selected
+  )
+})
+
+# get_mod_type_name
+test_that("get_mod_type_name", {
+  expect_equal(get_mod_type_name(ermod_emax_w_cov), "Emax model")
+  expect_equal(get_mod_type_name(ermod_bin_emax), "Binary Emax model")
+  expect_error(get_mod_type_name("1"), "Unknown model type")
 })

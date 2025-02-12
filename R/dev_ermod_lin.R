@@ -19,6 +19,7 @@
 #' @return An object of class `ermod_bin` or `ermod_lin`.
 #'
 #' @examples
+#' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'
 #' ermod_bin <- dev_ermod_bin(
@@ -29,6 +30,7 @@
 #' )
 #'
 #' ermod_bin
+#' }
 #'
 dev_ermod_bin <- function(
     data,
@@ -156,7 +158,7 @@ dev_ermod_bin_exp_sel <- function(
 #'
 #' @return An object of class `ermod_bin_cov_sel` or `ermod_lin_cov_sel`.
 #'
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_covsel()
 #' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'
@@ -223,6 +225,7 @@ dev_ermod_bin_cov_sel <- function(
 #' @export
 #' @rdname dev_ermod_bin
 #' @examples
+#' \donttest{
 #' data(d_sim_lin)
 #'
 #' ermod_lin <- dev_ermod_lin(
@@ -233,6 +236,7 @@ dev_ermod_bin_cov_sel <- function(
 #' )
 #'
 #' ermod_lin
+#' }
 #'
 dev_ermod_lin <- function(
     data,
@@ -288,6 +292,7 @@ dev_ermod_lin <- function(
 #' @export
 #' @rdname dev_ermod_bin_exp_sel
 #' @examples
+#' \donttest{
 #' data(d_sim_lin)
 #'
 #' ermod_lin_exp_sel <- dev_ermod_lin_exp_sel(
@@ -297,6 +302,7 @@ dev_ermod_lin <- function(
 #' )
 #'
 #' ermod_lin_exp_sel
+#' }
 #'
 dev_ermod_lin_exp_sel <- function(
     data,
@@ -322,7 +328,7 @@ dev_ermod_lin_exp_sel <- function(
 
 #' @export
 #' @rdname dev_ermod_bin_cov_sel
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_covsel()
 #' \donttest{
 #' data(d_sim_lin)
 #'
@@ -744,4 +750,8 @@ capture_selected_args <- function(arg_names, env) {
   names(input_args) <- arg_names
 
   return(input_args)
+}
+
+.if_run_ex_covsel <- function() {
+  requireNamespace("projpred", quietly = TRUE)
 }

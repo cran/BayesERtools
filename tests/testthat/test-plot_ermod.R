@@ -108,15 +108,16 @@ ersim_new_exp_marg_med_qi <- sim_er_new_exp_marg(
 
 # Test ------------------------------------------------------------------------
 test_that("plot_er.ermod", {
-  g1 <- plot_er(ermod_bin, show_orig_data = TRUE)
-  g2 <- plot_er(ermod_bin_w_cov,
-    show_orig_data = TRUE, marginal = TRUE,
-    n_draws_sim = 50, num_exposures = 31, exposure_range = c(1, 3)
-  )
+  if (requireNamespace("xgxr")) {
+    g1 <- plot_er(ermod_bin, show_orig_data = TRUE)
+    g2 <- plot_er(ermod_bin_w_cov,
+      show_orig_data = TRUE, marginal = TRUE,
+      n_draws_sim = 50, num_exposures = 31, exposure_range = c(1, 3)
+    )
 
-  expect_equal(nrow(g1$data), 51)
-  expect_equal(g2$data$AUCss_1000, seq(1, 3, length.out = 31))
-
+    expect_equal(nrow(g1$data), 51)
+    expect_equal(g2$data$AUCss_1000, seq(1, 3, length.out = 31))
+  }
   plot_er(ermod_bin_w_cov) |>
     expect_error("Model has covariate\\(s\\), and you cannot use this")
 })
@@ -124,37 +125,49 @@ test_that("plot_er.ermod", {
 test_that("plot_er.ersim", {
   g1 <- plot_er(ersim_curve)
   g2 <- plot_er(ersim_curve_med_qi)
-  g3 <- plot_er(ersim_curve_med_qi, show_orig_data = TRUE)
+  if (requireNamespace("xgxr")) {
+    g3 <- plot_er(ersim_curve_med_qi, show_orig_data = TRUE)
+  }
 
   expect_equal(nrow(g1$data), 31) # Make sure sim_er_curve worked fine
   expect_equal(g2$labels$x, "AUCss_1000")
 
   expect_silent(plot(g1))
 
-  plot_er(ersim_curve_2_med_qi, show_orig_data = TRUE) |>
-    expect_warning("Model has covariate\\(s\\), and only one covariate data")
+  if (requireNamespace("xgxr")) {
+    plot_er(ersim_curve_2_med_qi, show_orig_data = TRUE) |>
+      expect_warning("Model has covariate\\(s\\), and only one covariate data")
+  }
   plot_er(ersim_curve_3_med_qi) |>
     expect_error("Model has covariate\\(s\\) and multiple covariate data rows")
 })
 
 test_that("plot_er with groups", {
-  plot_er(ermod_bin,
-    show_orig_data = TRUE,
-    options_orig_data = list(var_group = "AUCss_1000")
-  ) |>
-    expect_error("Column `AUCss_1000` is numeric and has > 10 unique values")
+  if (requireNamespace("xgxr")) {
+    plot_er(ermod_bin,
+      show_orig_data = TRUE,
+      options_orig_data = list(var_group = "AUCss_1000")
+    ) |>
+      expect_error("Column `AUCss_1000` is numeric and has > 10 unique values")
 
-  plot_er(ermod_bin,
-    show_orig_data = TRUE,
-    options_orig_data = list(var_group = "Dose_mg")
-  ) |>
-    expect_silent()
+    plot_er(ermod_bin,
+      show_orig_data = TRUE,
+      options_orig_data = list(var_group = "Dose_mg")
+    ) |>
+      expect_silent()
 
-  plot_er(ermod_bin,
-    show_orig_data = TRUE,
-    options_orig_data = list(var_group = "Dose_mg", add_boxplot = TRUE)
-  ) |>
-    expect_silent()
+    plot_er(ermod_bin,
+      show_orig_data = TRUE,
+      options_orig_data = list(var_group = "Dose_mg", add_boxplot = TRUE)
+    ) |>
+      expect_silent()
+
+    plot_er(ermod_bin,
+      show_orig_data = TRUE,
+      options_orig_data = list(add_boxplot = TRUE)
+    ) |>
+      expect_silent()
+  }
 })
 
 test_that("plot_er add CI", {
@@ -166,15 +179,17 @@ test_that("plot_er add CI", {
 })
 
 test_that("plot_er show caption", {
-  plot_er(
-    ersim_curve_med_qi,
-    show_orig_data = TRUE,
-    show_coef_exp = TRUE,
-    show_caption = TRUE,
-    options_coef_exp = list(size = 6),
-    options_caption = list(orig_data = TRUE, orig_data_summary = TRUE)
-  ) |>
-    expect_silent()
+  if (requireNamespace("xgxr")) {
+    plot_er(
+      ersim_curve_med_qi,
+      show_orig_data = TRUE,
+      show_coef_exp = TRUE,
+      show_caption = TRUE,
+      options_coef_exp = list(size = 6),
+      options_caption = list(orig_data = TRUE, orig_data_summary = TRUE)
+    ) |>
+      expect_silent()
+  }
 
   plot_er(ermod_bin,
     show_coef_exp = TRUE,
@@ -186,10 +201,12 @@ test_that("plot_er show caption", {
 })
 
 test_that("plot_er_gof", {
-  plot_er_gof(ermod_bin) |>
-    expect_silent()
-  plot_er_gof(ermod_bin, var_group = "Dose_mg") |>
-    expect_silent()
-  plot_er_gof(ermod_bin, show_coef_exp = TRUE, show_caption = TRUE) |>
-    expect_silent()
+  if (requireNamespace("xgxr")) {
+    plot_er_gof(ermod_bin) |>
+      expect_silent()
+    plot_er_gof(ermod_bin, var_group = "Dose_mg") |>
+      expect_silent()
+    plot_er_gof(ermod_bin, show_coef_exp = TRUE, show_caption = TRUE) |>
+      expect_silent()
+  }
 })

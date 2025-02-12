@@ -74,72 +74,75 @@ ermod_bin_exp_sel_one_metric <-
 
 
 # dev_ermod_bin_cov_sel steps ------------------------------------------
-refm_obj <- .dev_ermod_refmodel(
-  data = df_er_ae_covsel_test,
-  var_resp = var_resp,
-  var_exposure = "AUCss_1000",
-  var_cov_candidates = var_cov_ae_covsel_test,
-  verbosity_level = 0,
-  # Below option to make the test fast
-  chains = 2, iter = 1000
-)
-
-var_selected <- .select_cov_projpred(
-  refm_obj = refm_obj,
-  var_exposure = "AUCss_1000",
-  var_cov_candidates = var_cov_ae_covsel_test,
-  # Set nterms_max to 4 to make the test fast
-  nterms_max = 3,
-  cv_method = "LOO",
-  validate_search = FALSE,
-  verbosity_level = 0
-)
-
-mod_final <- dev_ermod_bin(
-  data = df_er_ae_covsel_test,
-  var_resp = var_resp,
-  var_exposure = "AUCss_1000",
-  var_cov = "BHBA1C_5",
-  verbosity_level = 0,
-  # Below option to make the test fast
-  chains = 2, iter = 1000
-)
-
-## Test k-fold CV
-set.seed(1234)
-var_selected_kfold <-
-  suppressMessages(.select_cov_projpred(
-    refm_obj = refm_obj,
-    var_exposure = "AUCss_1000",
-    var_cov_candidates = var_cov_ae_covsel_test,
-    # Set nterms_max to 3 to make the test fast
-    nterms_max = 3,
-    cv_method = "kfold",
-    k = 2,
-    validate_search = TRUE,
-    verbosity_level = 0
-  ))
-
-ermod_bin_cov_sel_kfold_dummy <- list(
-  cvvs = attr(var_selected_kfold, "cvvs"),
-  rk = attr(var_selected_kfold, "rk")
-)
-class(ermod_bin_cov_sel_kfold_dummy) <- "ermod_bin_cov_sel"
-
-# dev_ermod_bin_cov_sel ------------------------------------------------
-set.seed(1234)
-ermod_bin_cov_sel <-
-  dev_ermod_bin_cov_sel(
+if (requireNamespace("projpred")) {
+  refm_obj <- .dev_ermod_refmodel(
     data = df_er_ae_covsel_test,
     var_resp = var_resp,
     var_exposure = "AUCss_1000",
     var_cov_candidates = var_cov_ae_covsel_test,
-    cv_method = "LOO",
-    nterms_max = 3,
     verbosity_level = 0,
-    chains = 2,
-    iter = 1000
+    # Below option to make the test fast
+    chains = 2, iter = 1000
   )
+
+  var_selected <- .select_cov_projpred(
+    refm_obj = refm_obj,
+    var_exposure = "AUCss_1000",
+    var_cov_candidates = var_cov_ae_covsel_test,
+    # Set nterms_max to 4 to make the test fast
+    nterms_max = 3,
+    cv_method = "LOO",
+    validate_search = FALSE,
+    verbosity_level = 0
+  )
+
+  mod_final <- dev_ermod_bin(
+    data = df_er_ae_covsel_test,
+    var_resp = var_resp,
+    var_exposure = "AUCss_1000",
+    var_cov = "BHBA1C_5",
+    verbosity_level = 0,
+    # Below option to make the test fast
+    chains = 2, iter = 1000
+  )
+
+  ## Test k-fold CV
+  set.seed(1234)
+  var_selected_kfold <-
+    suppressMessages(.select_cov_projpred(
+      refm_obj = refm_obj,
+      var_exposure = "AUCss_1000",
+      var_cov_candidates = var_cov_ae_covsel_test,
+      # Set nterms_max to 3 to make the test fast
+      nterms_max = 3,
+      cv_method = "kfold",
+      k = 2,
+      validate_search = TRUE,
+      verbosity_level = 0
+    ))
+
+  ermod_bin_cov_sel_kfold_dummy <- list(
+    cvvs = attr(var_selected_kfold, "cvvs"),
+    rk = attr(var_selected_kfold, "rk")
+  )
+  class(ermod_bin_cov_sel_kfold_dummy) <-
+    c("ermod_bin_cov_sel", "ermod_cov_sel", "ermod_bin", "ermod")
+
+  # dev_ermod_bin_cov_sel ------------------------------------------------
+  set.seed(1234)
+  ermod_bin_cov_sel <-
+    dev_ermod_bin_cov_sel(
+      data = df_er_ae_covsel_test,
+      var_resp = var_resp,
+      var_exposure = "AUCss_1000",
+      var_cov_candidates = var_cov_ae_covsel_test,
+      cv_method = "LOO",
+      nterms_max = 3,
+      verbosity_level = 0,
+      chains = 2,
+      iter = 1000
+    )
+}
 
 # lm -------------------------------------------------------------------
 set.seed(1234)
@@ -162,16 +165,18 @@ ermod_lin_exp_sel <- suppressMessages(dev_ermod_lin_exp_sel(
 ))
 
 
-ermod_lin_cov_sel <- suppressWarnings(dev_ermod_lin_cov_sel(
-  data = d_sim_lin,
-  var_resp = "response",
-  var_exposure = "AUCss",
-  var_cov_candidates = c("BAGE", "SEX"),
-  nterms_max = 2,
-  verbosity_level = 0,
-  chains = 2,
-  iter = 1000
-))
+if (requireNamespace("projpred")) {
+  ermod_lin_cov_sel <- suppressWarnings(dev_ermod_lin_cov_sel(
+    data = d_sim_lin,
+    var_resp = "response",
+    var_exposure = "AUCss",
+    var_cov_candidates = c("BAGE", "SEX"),
+    nterms_max = 2,
+    verbosity_level = 0,
+    chains = 2,
+    iter = 1000
+  ))
+}
 
 # Convert factor as response variable into number
 data("mtcars")
@@ -196,68 +201,78 @@ test_that("Exposure metrics selection", {
     c(AUCss_1000 = 0.000000, Cmaxss = -1.1955989, Cminss = -1.8564733)
   )
 
-  g1 <- plot_er_exp_sel(ermod_bin_exp_sel, n_draws_sim = 10)
-  g2 <- plot_er_exp_sel(ermod_bin_exp_sel_other_rank, n_draws_sim = 10)
+  if (.if_run_ex_plot_er()) {
+    g1 <- plot_er_exp_sel(ermod_bin_exp_sel, n_draws_sim = 10)
+    g2 <- plot_er_exp_sel(ermod_bin_exp_sel_other_rank, n_draws_sim = 10)
 
-  expect_silent(plot(g1))
+    expect_silent(plot(g1))
 
-  expect_equal(
-    levels(g1$data$.exp_met_fct), c("AUCss_1000", "Cmaxss", "Cminss")
-  )
-  expect_equal(
-    levels(g2$data$.exp_met_fct), c("Cminss", "AUCss_1000", "Cmaxss")
-  )
+    expect_equal(
+      levels(g1$data$.exp_met_fct), c("AUCss_1000", "Cmaxss", "Cminss")
+    )
+    expect_equal(
+      levels(g2$data$.exp_met_fct), c("Cminss", "AUCss_1000", "Cmaxss")
+    )
+  }
 })
 
 test_that("Full model dev", {
-  expect_equal(coef(refm_obj$fit)[[1]], -12.407539)
+  if (requireNamespace("projpred")) {
+    expect_equal(coef(refm_obj$fit)[[1]], -12.407539)
+  }
 })
 
 test_that("Variable selection", {
-  expect_equal(as.character(var_selected), c("AUCss_1000", "BHBA1C_5"))
-  expect_equal(
-    extract_var_selected(ermod_bin_cov_sel),
-    c("AUCss_1000", "BHBA1C_5")
-  )
+  if (requireNamespace("projpred")) {
+    expect_equal(as.character(var_selected), c("AUCss_1000", "BHBA1C_5"))
+    expect_equal(
+      extract_var_selected(ermod_bin_cov_sel),
+      c("AUCss_1000", "BHBA1C_5")
+    )
 
-  rk <- attr(var_selected_kfold, "rk")
-  expect_equal(rk$foldwise[, 3], c("RACE", "VISC"))
+    rk <- attr(var_selected_kfold, "rk")
+    expect_equal(rk$foldwise[, 3], c("RACE", "VISC"))
 
-  plot_submod_performance(ermod_bin_cov_sel) |>
-    expect_silent()
-  plot_var_ranking(ermod_bin_cov_sel_kfold_dummy) |>
-    expect_silent()
+    plot_submod_performance(ermod_bin_cov_sel) |>
+      expect_silent()
+    plot_var_ranking(ermod_bin_cov_sel_kfold_dummy) |>
+      expect_silent()
+  }
 })
 
 test_that("Final model", {
-  expect_equal(coef(ermod_bin_cov_sel)[[1]], -10.8659485)
+  if (requireNamespace("projpred")) {
+    expect_equal(coef(ermod_bin_cov_sel)[[1]], -10.8659485)
+  }
 })
 
 test_that("No ER case", {
   set.seed(1234)
 
-  refm_obj_dr2 <- .dev_ermod_refmodel(
-    data = df_er_dr2,
-    var_resp = var_resp,
-    var_exposure = "AUCss_1000",
-    var_cov_candidates = c("BAGE_10", "BWT_10"),
-    verbosity_level = 0,
-    # Below option to make the test fast
-    chains = 2, iter = 1000
-  )
+  if (requireNamespace("projpred")) {
+    refm_obj_dr2 <- .dev_ermod_refmodel(
+      data = df_er_dr2,
+      var_resp = var_resp,
+      var_exposure = "AUCss_1000",
+      var_cov_candidates = c("BAGE_10", "BWT_10"),
+      verbosity_level = 0,
+      # Below option to make the test fast
+      chains = 2, iter = 1000
+    )
 
-  .select_cov_projpred(
-    refm_obj = refm_obj_dr2,
-    var_exposure = "AUCss_1000",
-    var_cov_candidates = c("BAGE_10", "BWT_10"),
-    # Set nterms_max to 4 to make the test fast
-    nterms_max = 1,
-    cv_method = "LOO",
-    validate_search = FALSE,
-    verbosity_level = 1
-  ) |>
-    expect_message("No variables selected") |>
-    expect_message("The variables selected were: AUCss_1000")
+    .select_cov_projpred(
+      refm_obj = refm_obj_dr2,
+      var_exposure = "AUCss_1000",
+      var_cov_candidates = c("BAGE_10", "BWT_10"),
+      # Set nterms_max to 4 to make the test fast
+      nterms_max = 1,
+      cv_method = "LOO",
+      validate_search = FALSE,
+      verbosity_level = 1
+    ) |>
+      expect_message("No variables selected") |>
+      expect_message("The variables selected were: AUCss_1000")
+  }
 })
 
 
@@ -312,13 +327,17 @@ test_that("lm", {
     dim() |>
     expect_equal(c(1000, 8))
   ermod_lin_exp_sel$loo_comp_exposures |> expect_s3_class("compare.loo")
-  ermod_lin_cov_sel$cvvs |> expect_s3_class("vsel")
-  expect_equal(ermod_lin_cov_sel$var_selected, c("AUCss", "BAGE"))
+  if (requireNamespace("projpred")) {
+    ermod_lin_cov_sel$cvvs |> expect_s3_class("vsel")
+    expect_equal(ermod_lin_cov_sel$var_selected, c("AUCss", "BAGE"))
+  }
 })
 
 test_that("plot_er_gof for lin", {
-  plot_er_gof(ermod_lin_exp_sel, show_coef_exp = TRUE) |>
-    expect_silent()
+  if (.if_run_ex_plot_er()) {
+    plot_er_gof(ermod_lin_exp_sel, show_coef_exp = TRUE) |>
+      expect_silent()
+  }
 })
 
 test_that("Convert factor as response variable into number", {
@@ -336,7 +355,43 @@ test_that("Convert factor as response variable into number", {
   ) |>
     expect_error("Response variable must be a numeric of 0 and 1")
 
-  plot_er_gof(mod_mtcars, n_bins = 4) |>
-    expect_error("The breaks for the binned probability ")
-  plot_er_gof(mod_mtcars, n_bins = 2) |> expect_silent()
+  if (.if_run_ex_plot_er()) {
+    plot_er_gof(mod_mtcars, n_bins = 4) |>
+      expect_error("The breaks for the binned probability ")
+    plot_er_gof(mod_mtcars, n_bins = 2) |> expect_silent()
+  }
+})
+
+test_that("print.ermod_exp_sel prints correct information", {
+  out <- cli::cli_fmt({
+    print(ermod_bin_exp_sel)
+  })
+  expect_true(any(grepl("Binary ER model", out)))
+  expect_true(any(grepl("& exposure metric selection", out)))
+  expect_true(any(grepl("Use \\`plot_er_exp_sel\\(\\)\\` for ER curve", out)))
+})
+
+test_that("print.ermod_cov_sel prints correct information", {
+  if (requireNamespace("projpred")) {
+    out <- cli::cli_fmt({
+      print(ermod_bin_cov_sel_kfold_dummy)
+    })
+    expect_true(any(grepl("Binary ER model", out)))
+    expect_true(any(grepl("& covariate selection", out)))
+    expect_true(any(grepl("Use \\`plot_submod_performance\\(\\)\\`", out)))
+  }
+})
+
+# plot.ermod_exp_sel
+test_that("plot.ermod_exp_sel calls plot_er_exp_sel", {
+  if (.if_run_ex_plot_er()) {
+    expect_silent(plot.ermod_exp_sel(ermod_bin_exp_sel))
+  }
+})
+
+# plot.ermod_cov_sel
+test_that("plot.ermod_cov_sel calls plot_submod_performance", {
+  if (requireNamespace("projpred")) {
+    expect_silent(plot.ermod_cov_sel(ermod_lin_cov_sel))
+  }
 })

@@ -31,6 +31,7 @@ bayestestR::p_direction
 #'
 #' @return See [bayestestR::p_direction()] for details.
 #' @examples
+#' \donttest{
 #' df_er_dr2 <-
 #'   d_sim_binom_cov |>
 #'   dplyr::filter(
@@ -47,6 +48,7 @@ bayestestR::p_direction
 #' )
 #'
 #' p_direction(ermod_bin, as_num = TRUE, as_p = TRUE)
+#' }
 #'
 p_direction.ermod_bin <- function(
     x,

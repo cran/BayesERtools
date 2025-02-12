@@ -99,6 +99,8 @@ plot_er(
 }
 }
 \examples{
+\dontshow{if (BayesERtools:::.if_run_ex_plot_er()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 data(d_sim_binom_cov_hgly2)
 
 ermod_bin <- dev_ermod_bin(
@@ -108,5 +110,6 @@ ermod_bin <- dev_ermod_bin(
 )
 
 plot_er_gof(ermod_bin, var_group = "Dose_mg", show_coef_exp = TRUE)
-
+}
+\dontshow{\}) # examplesIf}
 }

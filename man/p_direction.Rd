@@ -50,6 +50,7 @@ For the class \verb{ermod_bin_*}, it only calculates the \strong{pd} for
 the exposure variable.
 }
 \examples{
+\donttest{
 df_er_dr2 <-
   d_sim_binom_cov |>
   dplyr::filter(
@@ -66,5 +67,6 @@ ermod_bin <- dev_ermod_bin(
 )
 
 p_direction(ermod_bin, as_num = TRUE, as_p = TRUE)
+}
 
 }

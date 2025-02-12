@@ -27,6 +27,7 @@ evaluated during variable selection.
 evaluated during variable selection.
 }
 \examples{
+\dontshow{if (BayesERtools:::.if_run_ex_covsel()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
 data(d_sim_binom_cov_hgly2)
 
@@ -46,4 +47,5 @@ er_binary_cov_model_kfold <- dev_ermod_bin_cov_sel(
 plot_submod_performance(er_binary_cov_model_kfold)
 plot_var_ranking(er_binary_cov_model_kfold)
 }
+\dontshow{\}) # examplesIf}
 }

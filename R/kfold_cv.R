@@ -18,7 +18,7 @@
 #' @return A `kfold_cv_ermod` class object containing the fitted models and
 #' holdout predictions for each fold.
 #'
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_eval_mod()
 #' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'

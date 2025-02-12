@@ -50,6 +50,7 @@ These functions are used to develop an linear ER model with binary
 You can also specify covariates to be included in the model.
 }
 \examples{
+\donttest{
 data(d_sim_binom_cov_hgly2)
 
 ermod_bin <- dev_ermod_bin(
@@ -60,7 +61,9 @@ ermod_bin <- dev_ermod_bin(
 )
 
 ermod_bin
+}
 
+\donttest{
 data(d_sim_lin)
 
 ermod_lin <- dev_ermod_lin(
@@ -71,5 +74,6 @@ ermod_lin <- dev_ermod_lin(
 )
 
 ermod_lin
+}
 
 }

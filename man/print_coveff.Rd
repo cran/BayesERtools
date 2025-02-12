@@ -45,6 +45,8 @@ already generated in an earlier step in \code{\link[=build_spec_coveff]{build_sp
 \code{\link[=sim_coveff]{sim_coveff()}}.
 }
 \examples{
+\dontshow{if (BayesERtools:::.if_run_ex_coveff()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 data(d_sim_binom_cov_hgly2)
 
 ermod_bin <- dev_ermod_bin(
@@ -55,5 +57,6 @@ ermod_bin <- dev_ermod_bin(
 )
 
 print_coveff(sim_coveff(ermod_bin))
-
+}
+\dontshow{\}) # examplesIf}
 }

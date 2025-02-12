@@ -59,7 +59,8 @@
 #' suitable, you can always perform the simulation manually and use
 #' `plot_er()` on the simulated data.
 #'
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_plot_er()
+#' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'
 #' ermod_bin <- dev_ermod_bin(
@@ -75,6 +76,7 @@
 #'
 #' plot_er(ersim_med_qi, show_orig_data = TRUE) +
 #'   xgxr::xgx_scale_x_log10()
+#' }
 #'
 plot_er <- function(x, ...) {
   UseMethod("plot_er")
@@ -321,6 +323,8 @@ plot_er.ersim_med_qi <- function(
     ggplot2::labs(x = var_exposure, y = "Probability of event")
 
   if (show_orig_data) {
+    rlang::check_installed("xgxr")
+
     var_group <- options_orig_data$var_group
     n_bins <- options_orig_data$n_bins
     qi_width <- options_orig_data$qi_width
@@ -589,7 +593,8 @@ plot_er.ermod <- function(
 #' }
 #'
 #' @return A ggplot object
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_plot_er()
+#' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'
 #' ermod_bin <- dev_ermod_bin(
@@ -599,6 +604,7 @@ plot_er.ermod <- function(
 #' )
 #'
 #' plot_er_gof(ermod_bin, var_group = "Dose_mg", show_coef_exp = TRUE)
+#' }
 #'
 plot_er_gof <- function(
     x, add_boxplot = !is.null(var_group), boxplot_height = 0.15,
@@ -716,4 +722,8 @@ set_pos_ci_annot <- function(x, pos_x, pos_y, var_exposure, var_resp) {
     }
   }
   return(c(pos_x, pos_y))
+}
+
+.if_run_ex_plot_er <- function() {
+  requireNamespace("xgxr", quietly = TRUE)
 }

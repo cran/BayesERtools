@@ -146,6 +146,8 @@ suitable, you can always perform the simulation manually and use
 \code{plot_er()} on the simulated data.
 }
 \examples{
+\dontshow{if (BayesERtools:::.if_run_ex_plot_er()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 data(d_sim_binom_cov_hgly2)
 
 ermod_bin <- dev_ermod_bin(
@@ -161,5 +163,6 @@ ersim_med_qi <- sim_er_curve(
 
 plot_er(ersim_med_qi, show_orig_data = TRUE) +
   xgxr::xgx_scale_x_log10()
-
+}
+\dontshow{\}) # examplesIf}
 }

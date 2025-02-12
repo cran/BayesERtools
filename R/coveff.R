@@ -17,7 +17,8 @@
 #' @return A data frame with class `coveffsim` containing the median and
 #' quantile interval of the covariate effects.
 #'
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_coveff()
+#' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'
 #' ermod_bin <- dev_ermod_bin(
@@ -28,6 +29,7 @@
 #' )
 #'
 #' sim_coveff(ermod_bin)
+#' }
 #'
 sim_coveff <- function(
     ermod, data = NULL, spec_coveff = NULL,
@@ -36,11 +38,6 @@ sim_coveff <- function(
     qi_width_cov = 0.9) {
   stopifnot(inherits(ermod, "ermod"))
   output_type <- match.arg(output_type)
-
-  # Need the followings for printing and plotting
-  rlang::check_installed("ggforce")
-  rlang::check_installed("gt")
-  rlang::check_installed("xgxr")
 
   if (is.null(data)) {
     data <- ermod$data
@@ -117,7 +114,9 @@ sim_coveff <- function(
 #' @param ... currently not used
 #'
 #' @return A ggplot object
-#' @examples
+#'
+#' @examplesIf BayesERtools:::.if_run_ex_coveff()
+#' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'
 #' ermod_bin <- dev_ermod_bin(
@@ -128,6 +127,7 @@ sim_coveff <- function(
 #' )
 #'
 #' plot_coveff(ermod_bin)
+#' }
 #'
 plot_coveff <- function(x, ...) UseMethod("plot_coveff")
 
@@ -151,6 +151,10 @@ plot_coveff.ermod <- function(
 #' @export
 #' @rdname plot_coveff
 plot_coveff.coveffsim <- function(x, ...) {
+  # Need the followings for plotting
+  rlang::check_installed("ggforce")
+  rlang::check_installed("xgxr")
+
   coveffsim <- x
 
   coveffsim_for_plot <-
@@ -221,7 +225,8 @@ plot_coveff.coveffsim <- function(x, ...) {
 #' - `Odds ratio`: the odds ratio of the covariate effect
 #' - `95% CI`: the 95% credible interval of the covariate effect
 #'
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_coveff()
+#' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'
 #' ermod_bin <- dev_ermod_bin(
@@ -232,9 +237,12 @@ plot_coveff.coveffsim <- function(x, ...) {
 #' )
 #'
 #' print_coveff(sim_coveff(ermod_bin))
+#' }
 #'
 print_coveff <- function(
     coveffsim, n_sigfig = 3, use_seps = TRUE, drop_trailing_dec_mark = TRUE) {
+  rlang::check_installed("gt")
+
   coveffsim_non_ref <-
     coveffsim |>
     dplyr::filter(!is_ref_value)
@@ -344,4 +352,10 @@ replace_value_for_sim <- function(df_one_row) {
   df_one_row[[var_name]] <- value
 
   return(df_one_row)
+}
+
+.if_run_ex_coveff <- function() {
+  requireNamespace("ggforce", quietly = TRUE) &&
+    requireNamespace("xgxr", quietly = TRUE) &&
+    requireNamespace("gt", quietly = TRUE)
 }

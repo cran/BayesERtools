@@ -46,6 +46,8 @@ A ggplot object
 Visualize the covariate effects for ER model
 }
 \examples{
+\dontshow{if (BayesERtools:::.if_run_ex_coveff()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 data(d_sim_binom_cov_hgly2)
 
 ermod_bin <- dev_ermod_bin(
@@ -56,5 +58,6 @@ ermod_bin <- dev_ermod_bin(
 )
 
 plot_coveff(ermod_bin)
-
+}
+\dontshow{\}) # examplesIf}
 }

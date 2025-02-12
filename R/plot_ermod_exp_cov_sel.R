@@ -9,7 +9,7 @@
 #' evaluated during variable selection.
 #'
 #' @return No return value, called for plotting side effect.
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_covsel()
 #' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'
@@ -63,7 +63,7 @@ plot_var_ranking <- function(x) {
 #' value. Default is NULL (use all draws in the model object)
 #'
 #' @return No return value, called for plotting side effect.
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_plot_er()
 #' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #'

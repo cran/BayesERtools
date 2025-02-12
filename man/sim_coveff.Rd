@@ -41,6 +41,8 @@ quantile interval of the covariate effects.
 Perform simulation of covariate effects for ER model
 }
 \examples{
+\dontshow{if (BayesERtools:::.if_run_ex_coveff()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 data(d_sim_binom_cov_hgly2)
 
 ermod_bin <- dev_ermod_bin(
@@ -51,5 +53,6 @@ ermod_bin <- dev_ermod_bin(
 )
 
 sim_coveff(ermod_bin)
-
+}
+\dontshow{\}) # examplesIf}
 }

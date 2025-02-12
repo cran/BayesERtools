@@ -6,6 +6,11 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/Genentech/BayesERtools/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Genentech/BayesERtools/actions/workflows/R-CMD-check.yaml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/BayesERtools)](https://CRAN.R-project.org/package=BayesERtools)
+[![downloads](https://cranlogs.r-pkg.org/badges/grand-total/BayesERtools)](https://CRAN.R-project.org/package=BayesERtools)
+[![Codecov test
+coverage](https://codecov.io/gh/Genentech/BayesERtools/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Genentech/BayesERtools?branch=main)
 <!-- badges: end -->
 
 `BayesERtools` provides a suite of tools that facilitate
@@ -21,15 +26,8 @@ exposure-response analysis using Bayesian methods.
 You can install the `BayesERtools` with:
 
 ``` r
-# install.packages('BayesERtools') # Once on CRAN
-devtools::install_github("genentech/BayesERtools") # development version
-```
-
-You also need latest version of `rstanemax` (\>= 0.1.7) to use
-E<sub>max</sub> model.
-
-``` r
-install.packages('rstanemax', repos = c(ppm = 'https://packagemanager.posit.co/cran/latest'))
+install.packages('BayesERtools')
+# devtools::install_github("genentech/BayesERtools") # development version
 ```
 
 ## Supported model types

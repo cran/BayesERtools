@@ -21,7 +21,7 @@
 #' @return A tibble with calculated performance metrics, such as AUROC or
 #' RMSE, depending on the model type.
 #'
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_eval_mod()
 #' \donttest{
 #' data(d_sim_binom_cov_hgly2)
 #' d_split <- rsample::initial_split(d_sim_binom_cov_hgly2)
@@ -129,4 +129,10 @@ eval_ermod <- function(
   metrics <- class_metrics(results, truth, pred)
 
   return(metrics)
+}
+
+
+.if_run_ex_eval_mod <- function() {
+  requireNamespace("rsample", quietly = TRUE) &&
+    requireNamespace("yardstick", quietly = TRUE)
 }
