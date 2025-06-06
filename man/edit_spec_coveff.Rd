@@ -9,6 +9,7 @@
 build_spec_coveff_one_variable(
   var_name,
   values_vec,
+  var_label = NULL,
   qi_width_cov = 0.9,
   n_sigfig = 3,
   use_seps = TRUE,
@@ -23,6 +24,9 @@ replace_spec_coveff(spec_orig, spec_new, replace_ref_value = FALSE)
 created.}
 
 \item{values_vec}{The vector of the values for creating a new spec.}
+
+\item{var_label}{The label of the variable to be used for plot. If NULL
+(default), it is set to \code{var_name}.}
 
 \item{qi_width_cov}{the width of the quantile interval for continuous
 covariates in the forest plot. Default is 0.9 (i.e. visualize effect of
@@ -91,6 +95,7 @@ ermod_bin <- suppressWarnings(dev_ermod_bin(
 spec_coveff <- build_spec_coveff(ermod_bin)
 spec_new_bgluc <- build_spec_coveff_one_variable(
   "BGLUC", seq(4, 8, by = 0.1),
+  var_label = "Baseline Glucose (mmol/L)",
   qi_width_cov = 0.8, show_ref_value = FALSE
 )
 spec_coveff_new <- replace_spec_coveff(spec_coveff, spec_new_bgluc)

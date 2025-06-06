@@ -213,6 +213,34 @@ dev_ermod_bin_emax <- function(
     chains = 4,
     iter = 2000,
     seed = sample.int(.Machine$integer.max, 1)) {
+  # Warn when e0_fix is set
+  if (!is.null(e0_fix) && e0_fix == 0) {
+    warning(
+      "e0_fix is set to 0 (on logit scale), which is equivalent to assuming",
+      "that the probability of events at the exposure = 0 is 50%.\n",
+      "You can ignore this warning if this was the intended behavior."
+    )
+  } else if (!is.null(e0_fix)) {
+    message(
+      "e0_fix is set at ", e0_fix,
+      ". Note that this is on logit scale. ",
+      "it is equivalent to fixing the probability at ",
+      round(100 * stats::plogis(e0_fix)), "%.\n",
+      "You can ignore this message if this was the intended behavior."
+    )
+  }
+
+  # Warn when em_fix is set
+  if (!is.null(emax_fix)) {
+    message(
+      "emax_fix is set at ", emax_fix,
+      ". Note that this is on logit scale. ",
+      "it is equivalent to fixing the probability at ",
+      round(100 * stats::plogis(emax_fix)), "%.\n",
+      "You can ignore this message if this was the intended behavior."
+    )
+  }
+
   input_args <- capture_selected_args(
     c(
       "gamma_fix", "e0_fix", "emax_fix",

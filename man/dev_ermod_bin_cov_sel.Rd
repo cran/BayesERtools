@@ -15,6 +15,8 @@ dev_ermod_bin_cov_sel(
   validate_search = FALSE,
   nterms_max = NULL,
   .reduce_obj_size = TRUE,
+  prior = rstanarm::default_prior_coef(stats::binomial()),
+  prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
   verbosity_level = 1,
   chains = 4,
   iter = 2000
@@ -30,6 +32,9 @@ dev_ermod_lin_cov_sel(
   validate_search = FALSE,
   nterms_max = NULL,
   .reduce_obj_size = TRUE,
+  prior = rstanarm::default_prior_coef(stats::binomial()),
+  prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
+  prior_aux = rstanarm::exponential(autoscale = TRUE),
   verbosity_level = 1,
   chains = 4,
   iter = 2000
@@ -60,6 +65,8 @@ Default is NULL (all terms are considered).}
 \item{.reduce_obj_size}{Whether to reduce object size by removing some
 elements from projpred outputs that are not necessary for the functionality
 of this package.}
+
+\item{prior, prior_intercept, prior_aux}{See \code{\link[rstanarm:stan_glm]{rstanarm::stan_glm()}}}
 
 \item{verbosity_level}{Verbosity level. 0: No output, 1: Display steps,
 2: Display progress in each step, 3: Display MCMC sampling.}

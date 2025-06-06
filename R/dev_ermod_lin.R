@@ -11,6 +11,7 @@
 #' @param var_resp Response variable name in character
 #' @param var_exposure Exposure variable names in character
 #' @param var_cov Covariate variable names in character vector
+#' @param prior,prior_intercept,prior_aux See [rstanarm::stan_glm()]
 #' @param verbosity_level Verbosity level. 0: No output, 1: Display steps,
 #' 2: Display progress in each step, 3: Display MCMC sampling.
 #' @param chains Number of chains for Stan.
@@ -37,6 +38,8 @@ dev_ermod_bin <- function(
     var_resp,
     var_exposure,
     var_cov = NULL,
+    prior = rstanarm::default_prior_coef(stats::binomial()),
+    prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
     verbosity_level = 1,
     chains = 4,
     iter = 2000) {
@@ -63,16 +66,19 @@ dev_ermod_bin <- function(
       paste(var_resp, "~", paste(var_full, collapse = " + "))
     )
 
-
-  mod <- rstanarm::stan_glm(
-    formula_final,
+  # Need to construct call and then evaluate. Directly calling
+  # rstanarm::stan_glm with formula_final does not work for the cross-validation
+  call_stan_glm <- rlang::call2(
+    rstanarm::stan_glm,
+    formula = formula_final,
     family = stats::binomial(),
-    data = data,
+    data = quote(data),
+    prior = prior,
+    prior_intercept = prior_intercept,
     QR = dplyr::if_else(length(var_full) > 1, TRUE, FALSE),
-    refresh = refresh,
-    chains = chains,
-    iter = iter
+    refresh = refresh, chains = chains, iter = iter
   )
+  mod <- eval(call_stan_glm)
 
   new_ermod_bin(
     mod = mod,
@@ -116,9 +122,18 @@ dev_ermod_bin_exp_sel <- function(
     data,
     var_resp,
     var_exp_candidates,
+    prior = rstanarm::default_prior_coef(stats::binomial()),
+    prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
     verbosity_level = 1,
     chains = 4,
     iter = 2000) {
+  fun_dev_ermod <-
+    purrr::partial(
+      dev_ermod_bin,
+      prior = prior,
+      prior_intercept = prior_intercept
+    )
+
   l_out <-
     .dev_ermod_exp_sel(
       data = data,
@@ -127,7 +142,7 @@ dev_ermod_bin_exp_sel <- function(
       verbosity_level = verbosity_level,
       chains = chains,
       iter = iter,
-      fun_dev_ermod = dev_ermod_bin
+      fun_dev_ermod = fun_dev_ermod
     )
 
   new_ermod_bin_exp_sel(l_out)
@@ -185,9 +200,18 @@ dev_ermod_bin_cov_sel <- function(
     validate_search = FALSE,
     nterms_max = NULL,
     .reduce_obj_size = TRUE,
+    prior = rstanarm::default_prior_coef(stats::binomial()),
+    prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
     verbosity_level = 1,
     chains = 4,
     iter = 2000) {
+  fun_dev_ermod <-
+    purrr::partial(
+      dev_ermod_bin,
+      prior = prior,
+      prior_intercept = prior_intercept
+    )
+
   ll <- .dev_ermod_cov_sel(
     data = data,
     var_resp = var_resp,
@@ -201,8 +225,10 @@ dev_ermod_bin_cov_sel <- function(
     verbosity_level = verbosity_level,
     chains = chains,
     iter = iter,
-    fun_dev_ermod = dev_ermod_bin,
-    fun_family = quote(stats::binomial())
+    fun_dev_ermod = fun_dev_ermod,
+    fun_family = quote(stats::binomial()),
+    prior = prior,
+    prior_intercept = prior_intercept
   )
 
   with(ll, new_ermod_bin_cov_sel(
@@ -243,6 +269,9 @@ dev_ermod_lin <- function(
     var_resp,
     var_exposure,
     var_cov = NULL,
+    prior = rstanarm::default_prior_coef(stats::binomial()),
+    prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
+    prior_aux = rstanarm::exponential(autoscale = TRUE),
     verbosity_level = 1,
     chains = 4,
     iter = 2000) {
@@ -272,6 +301,9 @@ dev_ermod_lin <- function(
     formula_final,
     family = stats::gaussian(),
     data = data,
+    prior = prior,
+    prior_intercept = prior_intercept,
+    prior_aux = prior_aux,
     QR = dplyr::if_else(length(var_full) > 1, TRUE, FALSE),
     refresh = refresh,
     chains = chains,
@@ -308,9 +340,20 @@ dev_ermod_lin_exp_sel <- function(
     data,
     var_resp,
     var_exp_candidates,
+    prior = rstanarm::default_prior_coef(stats::binomial()),
+    prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
+    prior_aux = rstanarm::exponential(autoscale = TRUE),
     verbosity_level = 1,
     chains = 4,
     iter = 2000) {
+  fun_dev_ermod <-
+    purrr::partial(
+      dev_ermod_lin,
+      prior = prior,
+      prior_intercept = prior_intercept,
+      prior_aux = prior_aux
+    )
+
   l_out <-
     .dev_ermod_exp_sel(
       data = data,
@@ -319,7 +362,7 @@ dev_ermod_lin_exp_sel <- function(
       verbosity_level = verbosity_level,
       chains = chains,
       iter = iter,
-      fun_dev_ermod = dev_ermod_lin
+      fun_dev_ermod = fun_dev_ermod
     )
 
   new_ermod_lin_exp_sel(l_out)
@@ -352,9 +395,20 @@ dev_ermod_lin_cov_sel <- function(
     validate_search = FALSE,
     nterms_max = NULL,
     .reduce_obj_size = TRUE,
+    prior = rstanarm::default_prior_coef(stats::binomial()),
+    prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
+    prior_aux = rstanarm::exponential(autoscale = TRUE),
     verbosity_level = 1,
     chains = 4,
     iter = 2000) {
+  fun_dev_ermod <-
+    purrr::partial(
+      dev_ermod_lin,
+      prior = prior,
+      prior_intercept = prior_intercept,
+      prior_aux = prior_aux
+    )
+
   ll <- .dev_ermod_cov_sel(
     data = data,
     var_resp = var_resp,
@@ -368,8 +422,11 @@ dev_ermod_lin_cov_sel <- function(
     verbosity_level = verbosity_level,
     chains = chains,
     iter = iter,
-    fun_dev_ermod = dev_ermod_lin,
-    fun_family = quote(stats::gaussian())
+    fun_dev_ermod = fun_dev_ermod,
+    fun_family = quote(stats::gaussian()),
+    prior = prior,
+    prior_intercept = prior_intercept,
+    prior_aux = prior_aux
   )
 
   with(ll, new_ermod_lin_cov_sel(
@@ -468,7 +525,10 @@ dev_ermod_lin_cov_sel <- function(
     chains = 4,
     iter = 2000,
     fun_dev_ermod,
-    fun_family) {
+    fun_family,
+    prior = rstanarm::default_prior_coef(stats::binomial()),
+    prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
+    prior_aux = rstanarm::exponential(autoscale = TRUE)) {
   stopifnot(verbosity_level %in% c(0, 1, 2, 3))
 
   rlang::check_installed("projpred")
@@ -492,7 +552,10 @@ dev_ermod_lin_cov_sel <- function(
     var_cov_candidates = var_cov_candidates,
     verbosity_level = verbosity_level,
     chains = chains, iter = iter,
-    fun_family = fun_family
+    fun_family = fun_family,
+    prior = prior,
+    prior_intercept = prior_intercept,
+    prior_aux = prior_aux
   )
 
   if (verbosity_level >= 1) cli::cli_h2("Step 2: Variable selection")
@@ -567,7 +630,10 @@ NULL
 .dev_ermod_refmodel <- function(
     data, var_resp, var_exposure, var_cov_candidates,
     verbosity_level = 1, chains = 4, iter = 2000,
-    fun_family = quote(stats::binomial())) {
+    fun_family = quote(stats::binomial()),
+    prior = rstanarm::default_prior_coef(stats::binomial()),
+    prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
+    prior_aux = rstanarm::exponential(autoscale = TRUE)) {
   stopifnot(verbosity_level %in% c(0, 1, 2, 3))
   refresh <- dplyr::if_else(verbosity_level >= 3, iter %/% 4, 0)
 
@@ -592,7 +658,9 @@ NULL
     rlang::call2(rstanarm::stan_glm,
       formula = formula_full,
       family = fun_family, data = quote(data), QR = TRUE,
-      refresh = refresh, chains = chains, iter = iter
+      refresh = refresh, chains = chains, iter = iter,
+      prior = prior, prior_intercept = prior_intercept,
+      prior_aux = prior_aux
     )
   fit_ref <- eval(call_fit_ref)
 

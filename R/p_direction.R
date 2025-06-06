@@ -1,8 +1,3 @@
-#' @name p_direction
-#' @importFrom bayestestR p_direction
-#' @export
-bayestestR::p_direction
-
 #' Probability of Direction (pd)
 #'
 #' Compute the **Probability of Direction** (***pd***). Although differently
@@ -16,8 +11,8 @@ bayestestR::p_direction
 #' For the class `ermod_bin_*`, it only calculates the **pd** for
 #' the exposure variable.
 #'
-#' @export
-#' @rdname p_direction
+#' @exportS3Method bayestestR::p_direction
+#' @name p_direction
 #' @param x An object of class \code{ermod_bin_*}
 #' @param null The null hypothesis value. Default is 0.
 #' @param as_num If `TRUE`, the output is converted to a numeric value.
@@ -30,8 +25,10 @@ bayestestR::p_direction
 #' @param ... Additional arguments passed to [bayestestR::p_direction()].
 #'
 #' @return See [bayestestR::p_direction()] for details.
-#' @examples
+#' @examplesIf BayesERtools:::.if_run_ex_p_dir()
 #' \donttest{
+#' library(bayestestR)
+#'
 #' df_er_dr2 <-
 #'   d_sim_binom_cov |>
 #'   dplyr::filter(
@@ -78,4 +75,8 @@ p_direction.ermod_bin <- function(
   if (as_p) out <- bayestestR::pd_to_p(out, direction = direction)
 
   return(out)
+}
+
+.if_run_ex_p_dir <- function() {
+  requireNamespace("bayestestR", quietly = TRUE)
 }

@@ -35,6 +35,11 @@ if (getRversion() >= "2.15.1") {
   utils::globalVariables(c(
     "truth", "pred", "fold_id", ".row_orig"
   ))
+
+  # sim data gen
+  utils::globalVariables(c(
+    "exposure", "cnt_a", "cnt_b", "cnt_c", "bin_d", "bin_pred", "bin_prob"
+  ))
 }
 
 
@@ -107,3 +112,34 @@ if (getRversion() >= "2.15.1") {
 #' @examples
 #' d_sim_lin
 "d_sim_lin"
+
+
+
+#' Sample simulated data for Emax exposure-response models with covariates.
+#'
+#' @name d_sim_emax
+#' @format A data frame with columns:
+#' \describe{
+#' \item{dose}{Nominal dose, units not specified}
+#' \item{exposure}{Exposure value, units and metric not specified}
+#' \item{response_1}{Continuous response value (units not specified)}
+#' \item{response_2}{Binary response value (group labels not specified)}
+#' \item{cnt_a}{Continuous valued covariate}
+#' \item{cnt_b}{Continuous valued covariate}
+#' \item{cnt_c}{Continuous valued covariate}
+#' \item{bin_d}{Binary valued covariate}
+#' \item{bin_e}{Binary valued covariate}
+#' }
+#' @details
+#'
+#' This simulated dataset is entirely synthetic. It is a generic data set that can be used
+#' to illustrate Emax modeling. It contains variables corresponding to dose and exposure,
+#' and includes both a continuous response variable and a binary response variable. Three
+#' continuous valued covariates are included, along with two binary covariates.
+#'
+#' You can find the data generating code in the package source code,
+#' under `data-raw/d_sim_emax.R`.
+#'
+#' @examples
+#' d_sim_emax
+"d_sim_emax"

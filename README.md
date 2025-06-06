@@ -99,8 +99,9 @@ install.packages('BayesERtools')
 ## Quick guide
 
 Here is a quick demo on how to use this package for E-R analysis. See
-`vignette("basic_workflow_bin")` for more thorough walk through of a
-basic workflow.
+[Basic
+workflow](https://genentech.github.io/BayesERbook/notebook/binary/basic_workflow.html)
+for more thorough walk through.
 
 ``` r
 # Load package and data

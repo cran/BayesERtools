@@ -84,10 +84,22 @@ tab_mod |>
 
 The package provides a set of functions to develop ER models. 
 The following functions are available:
+<br />
+<br />
 
-- Binary endpoint, linear logistic regression: `dev_ermod_bin()`, 
-  `dev_ermod_bin_exp_sel()`, `dev_ermod_bin_cov_sel()`
-- Continuous endpoint, Emax: `dev_ermod_emax()`
+**Binary endpoint**
+
+- Linear logistic regression: 
+  - `dev_ermod_bin()`, `dev_ermod_bin_exp_sel()`, `dev_ermod_bin_cov_sel()`
+- E~max~ logistic regression: 
+  - `dev_ermod_bin_emax()`, `dev_ermod_bin_emax_exp_sel()`
+  
+**Continuous endpoint**
+
+- Linear regression: 
+  - `dev_ermod_lin()`, `dev_ermod_lin_exp_sel()`, `dev_ermod_lin_cov_sel()`
+- E~max~ model: 
+  - `dev_ermod_emax()`, `dev_ermod_emax_exp_sel()`
 
 ![Figure: dev_ermod_*() 
 functions](img/fig_overview_dev_ermod.png){width=100%}
@@ -116,6 +128,6 @@ Simulated ER curve can be visualized with the following functions:
 
 ## Acknowledgement
 
-Figure created in https://www.biorender.com
+Figures created with https://www.biorender.com
 
 

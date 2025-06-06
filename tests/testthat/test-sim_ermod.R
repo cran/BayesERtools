@@ -163,3 +163,25 @@ test_that("sim_er_new_exp_marg", {
   expect_equal(max(ersim_new_exp_marg_med_qi$.epred), 0.38051861)
   expect_equal(ersim_curve_marg_med_qi$AUCss_1000, seq(2, 6, by = 0.4))
 })
+
+test_that("test for errors and warnings", {
+  sim_er_curve_marg(
+    ermod_bin,
+    exposure_range = c(2, 6),
+    num_exposures = 11,
+    data_cov = dplyr::tibble(BHBA1C_5 = seq(4, 10, by = 1)),
+    n_subj_sim = 10,
+    n_draws_sim = 200,
+    output_type = "median_qi"
+  ) |>
+    expect_warning("n_subj_sim \\(10\\) is greater than")
+
+  sim_er_new_exp(
+    ermod_bin,
+    exposure_to_sim_vec = c(2, 2:6),
+    data_cov = dplyr::tibble(BHBA1C_5 = 4:10, AUCss_1000 = 4:10),
+    n_draws_sim = 2000,
+    output_type = "draws"
+  ) |>
+    expect_warning("n_draws_sim \\(2000\\) is greater than")
+})

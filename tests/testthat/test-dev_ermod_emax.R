@@ -202,3 +202,27 @@ test_that("Convert factor as response variable into number", {
     plot_er_gof(mod_mtcars_emax, n_bins = 2) |> expect_silent()
   }
 })
+
+test_that("checking e0_fix and emax_fix in dev_ermod_bin_emax", {
+  dev_ermod_bin_emax(
+    e0_fix = 0,
+    verbosity_level = -1 # To stop the function from running
+  ) |>
+    expect_warning(
+      "e0_fix is set to 0"
+    ) |>
+    expect_error()
+
+  dev_ermod_bin_emax(
+    e0_fix = 1,
+    emax_fix = 2,
+    verbosity_level = -1 # To stop the function from running
+  ) |>
+    expect_message(
+      "e0_fix is set at 1"
+    ) |>
+    expect_message(
+      "emax_fix is set at 2"
+    ) |>
+    expect_error()
+})

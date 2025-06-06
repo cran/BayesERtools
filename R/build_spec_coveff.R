@@ -233,6 +233,8 @@ add_ordinal_suffix <- function(x) {
 #' @param var_name The name of the variable for which a new spec is to be
 #' created.
 #' @param values_vec The vector of the values for creating a new spec.
+#' @param var_label The label of the variable to be used for plot. If NULL
+#' (default), it is set to `var_name`.
 #' @param show_ref_value Whether to show the reference value in the plot and
 #' table. Setting this results in the `show_ref_value` column in the
 #' specification data frame.
@@ -257,6 +259,7 @@ add_ordinal_suffix <- function(x) {
 #' spec_coveff <- build_spec_coveff(ermod_bin)
 #' spec_new_bgluc <- build_spec_coveff_one_variable(
 #'   "BGLUC", seq(4, 8, by = 0.1),
+#'   var_label = "Baseline Glucose (mmol/L)",
 #'   qi_width_cov = 0.8, show_ref_value = FALSE
 #' )
 #' spec_coveff_new <- replace_spec_coveff(spec_coveff, spec_new_bgluc)
@@ -265,6 +268,7 @@ add_ordinal_suffix <- function(x) {
 #'
 build_spec_coveff_one_variable <- function(
     var_name, values_vec,
+    var_label = NULL,
     qi_width_cov = 0.9, n_sigfig = 3, use_seps = TRUE,
     drop_trailing_dec_mark = TRUE, show_ref_value = TRUE) {
   stopifnot(is.vector(values_vec))
@@ -284,6 +288,8 @@ build_spec_coveff_one_variable <- function(
       var_name, var_label, value_order, value_annot, value_label,
       dplyr::any_of(c("value_cont", "value_cat")), is_ref_value, show_ref_value
     )
+
+  if (!is.null(var_label)) spec_one_var$var_label <- var_label
 
   return(spec_one_var)
 }
@@ -407,7 +413,6 @@ replace_spec_coveff <- function(
       dplyr::bind_rows(spec_ref_orig, spec_new_2) |>
       dplyr::mutate(value_order = dplyr::row_number(), .by = var_name) |>
       dplyr::left_join(add_to_spec_new, by = "var_name") |>
-      # (\(.x) dplyr::bind_rows(spec_keep, .x))() |>
       dplyr::bind_rows(spec_keep) |>
       dplyr::arrange(var_order, value_order)
   }

@@ -181,7 +181,7 @@ sim_er <- function(
 #' )
 #'
 #' ersim_new_exp_med_qi
-#'}
+#' }
 #'
 sim_er_new_exp <- function(
     ermod,

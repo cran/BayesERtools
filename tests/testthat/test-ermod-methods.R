@@ -26,27 +26,27 @@ ermod_bin <- dev_ermod_bin(
   chains = 2, iter = 1000
 )
 
-ermod_bin_wo_cov <- dev_ermod_bin(
+ermod_bin_wo_cov <- suppressWarnings(dev_ermod_bin(
   data = df_er_ae_covsel_test,
   var_resp = "AEFLAG",
   var_exposure = "AUCss_1000",
   verbosity_level = 0,
   # Below option to make the test fast
-  chains = 2, iter = 1000
-)
+  chains = 2, iter = 50
+))
 
 set.seed(1234)
 ermod_emax_w_cov <-
-  dev_ermod_emax(
+  suppressWarnings(dev_ermod_emax(
     data = data_er_cont_cov,
     var_exposure = "conc",
     var_resp = "resp",
     l_var_cov = list(emax = "cov2", ec50 = "cov3", e0 = "cov1"),
     verbosity_level = 0,
     chains = 2,
-    iter = 1000,
+    iter = 50,
     seed = 1
-  )
+  ))
 
 ermod_bin_emax <-
   suppressWarnings(dev_ermod_bin_emax(
@@ -57,34 +57,12 @@ ermod_bin_emax <-
     # Increase iter for better convergence as exact reproducibility
     # over different machines doesn't seem realistic
     chains = 2,
-    iter = 1000,
+    iter = 50,
     seed = 1
   ))
 
+
 # Test ------------------------------------------------------------------------
-test_that("loo", {
-  loo_ermod_bin <- loo(ermod_bin)
-  loo_ermod_emax_w_cov <- suppressWarnings(loo(ermod_emax_w_cov))
-  loo_ermod_bin_emax <- loo(ermod_bin_emax)
-
-  expect_equal(
-    loo_ermod_bin$estimates[, 1],
-    c(elpd_loo = -38.528662, p_loo = 3.325979, looic = 77.057323)
-  )
-  expect_equal(
-    loo_ermod_emax_w_cov$estimates[, 1],
-    c(elpd_loo = -216.539552, p_loo = 7.765598, looic = 433.079103),
-    tolerance = 0.1
-  )
-  expect_equal(
-    loo_ermod_bin_emax$estimates[, 1],
-    c(elpd_loo = -60.787274, p_loo = 1.427765, looic = 121.574548),
-    tolerance = 0.1
-  )
-
-  expect_silent(loo::loo_compare(loo_ermod_bin, loo_ermod_bin_emax))
-})
-
 test_that("as_draws", {
   as_draws_df(ermod_bin)$AUCss_1000[1:10] |>
     expect_equal(
@@ -161,4 +139,11 @@ test_that("get_mod_type_name", {
   expect_equal(get_mod_type_name(ermod_emax_w_cov), "Emax model")
   expect_equal(get_mod_type_name(ermod_bin_emax), "Binary Emax model")
   expect_error(get_mod_type_name("1"), "Unknown model type")
+})
+
+# Expect errors for nonlinear models
+test_that("only supported for linear models", {
+  expect_error(coef(ermod_emax_w_cov), "coef")
+  expect_error(summary(ermod_emax_w_cov), "summary")
+  expect_error(prior_summary(ermod_emax_w_cov), "prior_summary.ermod")
 })

@@ -55,8 +55,8 @@ plot.ermod_bin <- function(x, show_orig_data = FALSE, ...) {
 #' @export
 #' @rdname ermod_method
 coef.ermod <- function(object, ...) {
-  if (inherits(object, "ermod_emax")) {
-    stop("coef() not supported for ermod_emax object")
+  if (!inherits(object, c("ermod_bin", "ermod_lin"))) {
+    stop("coef() only supported for linear models")
   }
 
   stats::coef(object$mod, ...)
@@ -65,8 +65,8 @@ coef.ermod <- function(object, ...) {
 #' @export
 #' @rdname ermod_method
 summary.ermod <- function(object, ...) {
-  if (inherits(object, "ermod_emax")) {
-    stop("summary() not supported for ermod_emax object")
+  if (!inherits(object, c("ermod_bin", "ermod_lin"))) {
+    stop("summary() only supported for linear models")
   }
 
   summary(object$mod, ...)
@@ -219,77 +219,67 @@ extract_var_selected.ermod_cov_sel <- function(x) x$var_selected
 #' @export
 #' @param x An object of class `ermod_bin` or `ermod_lin`
 #' @param ci_width Width of the credible interval
+#' @param exp_candidates Logical, whether to extract the credible interval for
+#' all exposure candidates. Default is `FALSE`. Only supported for models with
+#' exposure selection, created with [dev_ermod_bin_exp_sel()] or
+#' [dev_ermod_lin_exp_sel()] functions.
 #' @return A named vector of length 2 with the lower and upper bounds of the
-#'  credible interval (.lower, .upper)
+#'  credible interval (.lower, .upper). If `exp_candidates = TRUE`, a matrix
+#'  with the same structure is returned, with each row corresponding to an
+#'  exposure candidate.
 #'
-extract_coef_exp_ci <- function(x, ci_width = 0.95) {
-  # Check that input x is ermod object
+extract_coef_exp_ci <- function(
+    x, ci_width = 0.95, exp_candidates = FALSE) {
+  # Check that input x is linear ermod object
   if (!inherits(x, c("ermod_bin", "ermod_lin"))) {
     stop("extract_coef_exp_ci() only supported for linear models")
   }
+  if (exp_candidates && !inherits(x, "ermod_exp_sel")) {
+    stop(
+      "exp_candidates = TRUE only supported for",
+      " models with exposure selection"
+    )
+  }
 
-  coef_exp_ci <-
-    stats::quantile(
-      x$coef_exp_draws,
-      c(0.5 - ci_width / 2, 0.5 + ci_width / 2)
+  if (exp_candidates) {
+    coef_exp_ci <- lapply(
+      x$l_mod_exposures,
+      function(mod) {
+        stats::quantile(
+          mod$coef_exp_draws,
+          c(0.5 - ci_width / 2, 0.5 + ci_width / 2)
+        ) |>
+          stats::setNames(c(".lower", ".upper"))
+      }
     )
 
-  names(coef_exp_ci) <- c(".lower", ".upper")
+    coef_exp_ci <- do.call(rbind, coef_exp_ci)
+  } else {
+    coef_exp_ci <-
+      stats::quantile(
+        x$coef_exp_draws,
+        c(0.5 - ci_width / 2, 0.5 + ci_width / 2)
+      )
+
+    names(coef_exp_ci) <- c(".lower", ".upper")
+  }
 
   return(coef_exp_ci)
 }
 
-
-# LOO -------------------------------------------------------------------------
-
-#' Efficient approximate leave-one-out cross-validation (LOO)
-#'
-#' See [loo::loo()] for details.
-#'
-#' @name loo
-#' @param x An object of class `ermod`
-#' @param ... Additional arguments passed to `loo::loo()`
-#' @importFrom loo loo
-#'
-#' @return An object of class `loo`
-#' @export
-loo::loo
-
-#' @rdname loo
-#' @export
-loo.ermod <- function(x, ...) {
-  loo::loo(x$mod, ...)
-}
-
-#' @rdname loo
-#' @export
-loo.ermod_emax <- function(x, ...) {
-  rlang::check_installed("digest")
-
-  out <- loo::loo(x$mod$stanfit, ...)
-
-  y <- x$mod$standata$response
-  attributes(y) <- NULL
-  attr(out, "yhash") <- digest::sha1(y)
-
-  return(out)
-}
-
-#' @rdname loo
-#' @export
-loo.ermod_bin_emax <- function(x, ...) {
-  rlang::check_installed("digest")
-
-  out <- loo::loo(x$mod$stanfit, ...)
-
-  y <- x$mod$standata$response
-  attributes(y) <- NULL
-  attr(out, "yhash") <- digest::sha1(y)
-
-  return(out)
-}
-
 # as_draws --------------------------------------------------------------------
+
+#' Transform to `draws` objects
+#'
+#' See [posterior::as_draws()] for details.
+#'
+#' @importFrom posterior as_draws as_draws_list as_draws_array as_draws_df
+#' as_draws_matrix as_draws_rvars
+#' @param x An object of class `ermod`
+#' @param ... Arguments passed to individual methods (if applicable).
+#' @return A draws object from the `posterior` package.
+#' @name as_draws
+NULL
 
 #' @rdname as_draws
 #' @importFrom posterior as_draws
@@ -320,17 +310,6 @@ posterior::as_draws_matrix
 #' @importFrom posterior as_draws_rvars
 #' @export
 posterior::as_draws_rvars
-
-
-#' Transform to `draws` objects
-#'
-#' See [posterior::as_draws()] for details.
-#'
-#' @param x An object of class `ermod`
-#' @param ... Arguments passed to individual methods (if applicable).
-#' @return A draws object from the `posterior` package.
-#' @name as_draws
-NULL
 
 #' @rdname as_draws
 #' @export
@@ -366,4 +345,31 @@ as_draws_matrix.ermod <- function(x, ...) {
 #' @export
 as_draws_rvars.ermod <- function(x, ...) {
   posterior::as_draws_rvars(x$mod, ...)
+}
+
+# prior_summary --------------------------------------------------------------
+
+
+#' @name prior_summary
+#' @importFrom rstanarm prior_summary
+#' @export
+rstanarm::prior_summary
+
+#' Summarize the priors used for linear or linear logistic regression models
+#'
+#' See [rstanarm::prior_summary()] for details.
+#'
+#' @export
+#' @rdname prior_summary
+#' @param object An object of class `ermod`
+#' @param ... Additional arguments passed to `rstanarm::prior_summary()`
+#' @return An object of class `prior_summary.stanreg`
+#'
+prior_summary.ermod <- function(object, ...) {
+  # Check that input x is linear ermod object
+  if (!inherits(object, c("ermod_bin", "ermod_lin"))) {
+    stop("prior_summary.ermod() only supported for linear models")
+  }
+
+  rstanarm::prior_summary(object$mod, ...)
 }

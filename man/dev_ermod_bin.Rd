@@ -10,6 +10,8 @@ dev_ermod_bin(
   var_resp,
   var_exposure,
   var_cov = NULL,
+  prior = rstanarm::default_prior_coef(stats::binomial()),
+  prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
   verbosity_level = 1,
   chains = 4,
   iter = 2000
@@ -20,6 +22,9 @@ dev_ermod_lin(
   var_resp,
   var_exposure,
   var_cov = NULL,
+  prior = rstanarm::default_prior_coef(stats::binomial()),
+  prior_intercept = rstanarm::default_prior_intercept(stats::binomial()),
+  prior_aux = rstanarm::exponential(autoscale = TRUE),
   verbosity_level = 1,
   chains = 4,
   iter = 2000
@@ -33,6 +38,8 @@ dev_ermod_lin(
 \item{var_exposure}{Exposure variable names in character}
 
 \item{var_cov}{Covariate variable names in character vector}
+
+\item{prior, prior_intercept, prior_aux}{See \code{\link[rstanarm:stan_glm]{rstanarm::stan_glm()}}}
 
 \item{verbosity_level}{Verbosity level. 0: No output, 1: Display steps,
 2: Display progress in each step, 3: Display MCMC sampling.}

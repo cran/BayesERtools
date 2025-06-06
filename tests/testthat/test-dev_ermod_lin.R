@@ -53,6 +53,9 @@ ermod_bin_exp_sel <-
     data = df_er_ae_covsel_test_small,
     var_resp = var_resp,
     var_exp_candidates = var_exp_candidates,
+    prior = rstanarm::normal(location = 0, scale = 5, autoscale = TRUE),
+    prior_intercept =
+      rstanarm::normal(location = 0, scale = 4, autoscale = TRUE),
     verbosity_level = 0,
     chains = 1,
     iter = 200
@@ -129,6 +132,8 @@ if (requireNamespace("projpred")) {
     c("ermod_bin_cov_sel", "ermod_cov_sel", "ermod_bin", "ermod")
 
   # dev_ermod_bin_cov_sel ------------------------------------------------
+  prior_intercept <-
+    rstanarm::normal(location = 0, scale = 4, autoscale = TRUE)
   set.seed(1234)
   ermod_bin_cov_sel <-
     dev_ermod_bin_cov_sel(
@@ -137,6 +142,8 @@ if (requireNamespace("projpred")) {
       var_exposure = "AUCss_1000",
       var_cov_candidates = var_cov_ae_covsel_test,
       cv_method = "LOO",
+      prior = rstanarm::normal(location = 0, scale = 5, autoscale = TRUE),
+      prior_intercept = prior_intercept,
       nterms_max = 3,
       verbosity_level = 0,
       chains = 2,
@@ -152,6 +159,8 @@ ermod_lin <- dev_ermod_lin(
   var_resp = "response",
   var_exposure = "AUCss",
   var_cov = c("SEX", "BAGE"),
+  prior = rstanarm::normal(location = 0, scale = 5, autoscale = TRUE),
+  prior_aux = rstanarm::exponential(rate = 6, autoscale = TRUE),
   chains = 2,
   iter = 1000
 )
@@ -160,22 +169,26 @@ ermod_lin_exp_sel <- suppressMessages(dev_ermod_lin_exp_sel(
   data = d_sim_lin,
   var_resp = "response",
   var_exp_candidates = c("AUCss", "Cmaxss"),
+  prior = rstanarm::normal(location = 0, scale = 5, autoscale = TRUE),
+  prior_aux = rstanarm::exponential(rate = 6, autoscale = TRUE),
   chains = 2,
   iter = 1000
 ))
 
 
 if (requireNamespace("projpred")) {
-  ermod_lin_cov_sel <- suppressWarnings(dev_ermod_lin_cov_sel(
+  ermod_lin_cov_sel <- suppressMessages(suppressWarnings(dev_ermod_lin_cov_sel(
     data = d_sim_lin,
     var_resp = "response",
     var_exposure = "AUCss",
     var_cov_candidates = c("BAGE", "SEX"),
     nterms_max = 2,
-    verbosity_level = 0,
+    prior = rstanarm::normal(location = 0, scale = 5, autoscale = TRUE),
+    prior_aux = rstanarm::exponential(rate = 6, autoscale = TRUE),
+    verbosity_level = 1,
     chains = 2,
     iter = 1000
-  ))
+  )))
 }
 
 # Convert factor as response variable into number
@@ -198,8 +211,12 @@ test_that("Exposure metrics selection", {
   expect_equal(extract_var_exposure(ermod_bin_exp_sel), "AUCss_1000")
   expect_equal(
     extract_exp_sel_comp(ermod_bin_exp_sel)[, 1],
-    c(AUCss_1000 = 0.000000, Cmaxss = -1.1955989, Cminss = -1.8564733)
+    c(AUCss_1000 = 0.000000, Cmaxss = -0.6490312, Cminss = -2.7563957)
   )
+
+  priors <- prior_summary(ermod_bin_exp_sel$l_mod_exposures[[2]])
+  expect_equal(priors$prior$scale, 5)
+  expect_equal(priors$prior_intercept$scale, 4)
 
   if (.if_run_ex_plot_er()) {
     g1 <- plot_er_exp_sel(ermod_bin_exp_sel, n_draws_sim = 10)
@@ -230,6 +247,10 @@ test_that("Variable selection", {
       c("AUCss_1000", "BHBA1C_5")
     )
 
+    priors <- prior_summary(extract_mod(ermod_bin_cov_sel))
+    expect_equal(priors$prior$scale, c(5, 5))
+    expect_equal(priors$prior_intercept$scale, 4)
+
     rk <- attr(var_selected_kfold, "rk")
     expect_equal(rk$foldwise[, 3], c("RACE", "VISC"))
 
@@ -242,7 +263,7 @@ test_that("Variable selection", {
 
 test_that("Final model", {
   if (requireNamespace("projpred")) {
-    expect_equal(coef(ermod_bin_cov_sel)[[1]], -10.8659485)
+    expect_equal(coef(ermod_bin_cov_sel)[[1]], -10.9133063)
   }
 })
 
@@ -326,10 +347,21 @@ test_that("lm", {
   as_draws(ermod_lin) |>
     dim() |>
     expect_equal(c(1000, 8))
+  priors <- prior_summary(extract_mod(ermod_lin))
+  expect_equal(priors$prior$scale, rep(5, 3))
+  expect_equal(priors$prior_aux$rate, 6)
+
   ermod_lin_exp_sel$loo_comp_exposures |> expect_s3_class("compare.loo")
+  priors <- prior_summary(extract_mod(ermod_lin_exp_sel$l_mod_exposures[[2]]))
+  expect_equal(priors$prior$scale, 5)
+  expect_equal(priors$prior_aux$rate, 6)
+
   if (requireNamespace("projpred")) {
     ermod_lin_cov_sel$cvvs |> expect_s3_class("vsel")
     expect_equal(ermod_lin_cov_sel$var_selected, c("AUCss", "BAGE"))
+    priors <- prior_summary(extract_mod(ermod_lin_cov_sel))
+    expect_equal(priors$prior$scale, c(5, 5))
+    expect_equal(priors$prior_aux$rate, 6)
   }
 })
 
@@ -394,4 +426,33 @@ test_that("plot.ermod_cov_sel calls plot_submod_performance", {
   if (requireNamespace("projpred")) {
     expect_silent(plot.ermod_cov_sel(ermod_lin_cov_sel))
   }
+})
+
+test_that("test for errors and warnings", {
+  if (requireNamespace("projpred")) {
+    .select_cov_projpred(
+      var_exposure = c("AUC", "Cmax"),
+      validate_search = TRUE
+    ) |>
+      expect_error(
+        "Only one exposure metric should be provided"
+      )
+    .select_cov_projpred(
+      var_exposure = "AUC",
+      var_cov_candidates = "cov",
+      cv_method = "LOO",
+      validate_search = TRUE
+    ) |>
+      expect_error(
+        "validate_search should be set to FALSE for LOO,"
+      )
+  }
+})
+
+test_that("extract_coef_exp_ci for exp_candidates", {
+  extract_coef_exp_ci(ermod_bin_exp_sel, exp_candidates = TRUE) |>
+    dim() |>
+    expect_equal(c(3, 2))
+  extract_coef_exp_ci(ermod_lin, exp_candidates = TRUE) |>
+    expect_error("exp_candidates = TRUE only supported")
 })

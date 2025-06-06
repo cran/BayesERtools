@@ -4,16 +4,23 @@
 \alias{extract_coef_exp_ci}
 \title{Extract credible interval of the exposure coefficient}
 \usage{
-extract_coef_exp_ci(x, ci_width = 0.95)
+extract_coef_exp_ci(x, ci_width = 0.95, exp_candidates = FALSE)
 }
 \arguments{
 \item{x}{An object of class \code{ermod_bin} or \code{ermod_lin}}
 
 \item{ci_width}{Width of the credible interval}
+
+\item{exp_candidates}{Logical, whether to extract the credible interval for
+all exposure candidates. Default is \code{FALSE}. Only supported for models with
+exposure selection, created with \code{\link[=dev_ermod_bin_exp_sel]{dev_ermod_bin_exp_sel()}} or
+\code{\link[=dev_ermod_lin_exp_sel]{dev_ermod_lin_exp_sel()}} functions.}
 }
 \value{
 A named vector of length 2 with the lower and upper bounds of the
-credible interval (.lower, .upper)
+credible interval (.lower, .upper). If \code{exp_candidates = TRUE}, a matrix
+with the same structure is returned, with each row corresponding to an
+exposure candidate.
 }
 \description{
 Extract credible interval of the exposure coefficient

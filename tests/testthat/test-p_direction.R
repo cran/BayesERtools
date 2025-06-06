@@ -1,4 +1,6 @@
-if (.if_run_ex_covsel()) {
+if (.if_run_ex_p_dir() && .if_run_ex_covsel()) {
+  require(bayestestR)
+
   d_sim_binom_cov <- d_sim_binom_cov
 
   id_to_sample <- seq(1, max(d_sim_binom_cov$ID), by = 5)

@@ -5,8 +5,6 @@
 \alias{p_direction.ermod_bin}
 \title{Probability of Direction (pd)}
 \usage{
-p_direction(x, ...)
-
 \method{p_direction}{ermod_bin}(
   x,
   null = 0,
@@ -19,8 +17,6 @@ p_direction(x, ...)
 \arguments{
 \item{x}{An object of class \code{ermod_bin_*}}
 
-\item{...}{Additional arguments passed to \code{\link[bayestestR:p_direction]{bayestestR::p_direction()}}.}
-
 \item{null}{The null hypothesis value. Default is 0.}
 
 \item{as_p}{If \code{TRUE}, the p-direction (pd) values are converted to a
@@ -32,6 +28,8 @@ frequentist p-value using \code{\link[bayestestR:pd_to_p]{bayestestR::pd_to_p()}
 \item{direction}{What type of p-value is requested or provided with
 as_p = TRUE. Can be \code{"two-sided"} (default, two tailed) or \code{"one-sided"}
 (one tailed).}
+
+\item{...}{Additional arguments passed to \code{\link[bayestestR:p_direction]{bayestestR::p_direction()}}.}
 }
 \value{
 See \code{\link[bayestestR:p_direction]{bayestestR::p_direction()}} for details.
@@ -50,7 +48,10 @@ For the class \verb{ermod_bin_*}, it only calculates the \strong{pd} for
 the exposure variable.
 }
 \examples{
+\dontshow{if (BayesERtools:::.if_run_ex_p_dir()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
+library(bayestestR)
+
 df_er_dr2 <-
   d_sim_binom_cov |>
   dplyr::filter(
@@ -68,5 +69,5 @@ ermod_bin <- dev_ermod_bin(
 
 p_direction(ermod_bin, as_num = TRUE, as_p = TRUE)
 }
-
+\dontshow{\}) # examplesIf}
 }
