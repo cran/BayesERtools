@@ -24,6 +24,7 @@ Useful links:
 Authors:
 \itemize{
   \item François Mercier \email{francois.mercier@roche.com} (\href{https://orcid.org/0000-0002-5685-1408}{ORCID})
+  \item Danielle Navarro \email{djnavarro@protonmail.com} (\href{https://orcid.org/0000-0001-7648-6578}{ORCID})
 }
 
 Other contributors:

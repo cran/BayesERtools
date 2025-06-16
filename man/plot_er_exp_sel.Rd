@@ -30,7 +30,8 @@ ermod_bin_exp_sel <-
     var_exp_candidates = c("AUCss_1000", "Cmaxss", "Cminss")
   )
 
-plot_er_exp_sel(ermod_bin_exp_sel) + xgxr::xgx_scale_x_log10()
+plot_er_exp_sel(ermod_bin_exp_sel) +
+  xgxr::xgx_scale_x_log10(guide = ggplot2::guide_axis(minor.ticks = TRUE))
 }
 \dontshow{\}) # examplesIf}
 }

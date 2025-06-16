@@ -162,7 +162,8 @@ ersim_med_qi <- sim_er_curve(
 )
 
 plot_er(ersim_med_qi, show_orig_data = TRUE) +
-  xgxr::xgx_scale_x_log10()
+  # Use log10 scale for exposure
+  xgxr::xgx_scale_x_log10(guide = ggplot2::guide_axis(minor.ticks = TRUE))
 }
 \dontshow{\}) # examplesIf}
 }

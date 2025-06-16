@@ -109,7 +109,9 @@ ermod_bin <- dev_ermod_bin(
   var_exposure = "AUCss_1000"
 )
 
-plot_er_gof(ermod_bin, var_group = "Dose_mg", show_coef_exp = TRUE)
+plot_er_gof(ermod_bin, var_group = "Dose_mg", show_coef_exp = TRUE) *
+  # Use log10 scale for exposure, need to use `*` instead of `+`
+  xgxr::xgx_scale_x_log10(guide = ggplot2::guide_axis(minor.ticks = TRUE))
 }
 \dontshow{\}) # examplesIf}
 }

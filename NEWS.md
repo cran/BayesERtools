@@ -1,3 +1,11 @@
+# BayesERtools 0.2.3
+
+## Major changes
+  
+## Minor changes
+
+* Prepare for the upcoming ggplot2 release
+
 # BayesERtools 0.2.2
 
 ## Major changes
