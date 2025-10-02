@@ -85,7 +85,7 @@ install.packages('BayesERtools')
     <tr><td headers="feature_name" class="gt_row gt_left" style="text-align: right; vertical-align: middle;"><span class='gt_from_md'>covariate forest plot</span></td>
 <td headers="lin_logit" class="gt_row gt_left" style="text-align: center; vertical-align: middle;"><span class='gt_from_md'>✅</span></td>
 <td headers="emax_logit" class="gt_row gt_left" style="text-align: center; vertical-align: middle;"><span class='gt_from_md'>❌</span></td>
-<td headers="linear" class="gt_row gt_left" style="text-align: center; vertical-align: middle;"><span class='gt_from_md'>🟡</span></td>
+<td headers="linear" class="gt_row gt_left" style="text-align: center; vertical-align: middle;"><span class='gt_from_md'>✅</span></td>
 <td headers="emax" class="gt_row gt_left" style="text-align: center; vertical-align: middle;"><span class='gt_from_md'>❌</span></td></tr>
   </tbody>
   &#10;  <tfoot class="gt_footnotes">
@@ -157,6 +157,10 @@ ermod_bin
 # applied for both panels (main plot and boxplot)
 plot_er_gof(ermod_bin, var_group = "Dose", show_coef_exp = TRUE) *
   xgxr::xgx_scale_x_log10(guide = ggplot2::guide_axis(minor.ticks = TRUE))
+#> Warning in ggplot2::annotate("label", x = pos_ci_annot[1], y = pos_ci_annot[2],
+#> : Ignoring unknown parameters: `label.size`
+#> Warning: annotation$theme is not a valid theme.
+#> Please use `theme()` to construct themes.
 ```
 
 <img src="man/figures/README-ermod_bin-1.png" width="75%" />
@@ -213,6 +217,8 @@ plot_submod_performance(ermod_bin_cov_sel)
 ``` r
 coveffsim <- sim_coveff(ermod_bin_cov_sel)
 plot_coveff(coveffsim)
+#> Warning in geom_errorbar(..., orientation = orientation): Ignoring unknown
+#> parameters: `height`
 ```
 
 <img src="man/figures/README-plot_coveff-1.png" width="75%" />

@@ -31,7 +31,8 @@ with the following columns:
 \item \code{var_label}: the label of the covariate
 \item \code{value_label}: the label of the covariate value
 \item \code{value_annot}: the annotation of the covariate value
-\item \verb{Odds ratio}: the odds ratio of the covariate effect
+\item \verb{Odds ratio} or \verb{Response difference}: the odds ratio (for binary models) or
+response difference (for linear models) of the covariate effect
 \item \verb{95\% CI}: the 95\% credible interval of the covariate effect
 }
 }
@@ -40,7 +41,7 @@ Format the covariate effect simulation results for printing
 }
 \details{
 Note that \code{n_sigfig}, \code{use_seps}, and \code{drop_trailing_dec_mark} are only
-applied to the odds ratio and 95\% CI columns; value_label column was
+applied to the response difference/odds ratio and 95\% CI columns; value_label column was
 already generated in an earlier step in \code{\link[=build_spec_coveff]{build_spec_coveff()}} or
 \code{\link[=sim_coveff]{sim_coveff()}}.
 }
@@ -57,6 +58,18 @@ ermod_bin <- dev_ermod_bin(
 )
 
 print_coveff(sim_coveff(ermod_bin))
+
+# Linear regression model example
+data(d_sim_lin)
+
+ermod_lin <- dev_ermod_lin(
+  data = d_sim_lin,
+  var_resp = "response",
+  var_exposure = "AUCss",
+  var_cov = c("SEX", "BAGE"),
+)
+
+print_coveff(sim_coveff(ermod_lin))
 }
 \dontshow{\}) # examplesIf}
 }

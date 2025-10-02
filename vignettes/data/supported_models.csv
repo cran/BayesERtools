@@ -5,4 +5,4 @@ develop model,✅,✅,✅,✅,3
 simulate & plot ER,✅,✅,✅,✅,4
 exposure metrics selection,✅,✅,✅,✅,5
 covariate selection,✅,❌,✅,❌,6
-covariate forest plot,✅,❌,🟡,❌,7
+covariate forest plot,✅,❌,✅,❌,7

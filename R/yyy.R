@@ -19,7 +19,7 @@ if (getRversion() >= "2.15.1") {
   utils::globalVariables(c(
     "var_name", "var_order", "value_label", "value_cont", "value_cat",
     "value_order", "value_annot", "value_order", "var_label",
-    "var_value_index_num",
+    "var_value_index_num", ".response_diff",
     "is_covariate", "is_ref_value", "show_ref_value",
     "is_ref", ".linpred_ref", ".delta_linpred", ".is_ref_value",
     ".row_id", "df_one_row", "df_one_row_new", ".odds_ratio",

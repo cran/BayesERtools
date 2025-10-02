@@ -1,7 +1,7 @@
 #' Perform simulation of covariate effects for ER model
 #'
 #' @export
-#' @param ermod an object of class `ermod`
+#' @param ermod an object of class `ermod` (supports `ermod_bin` and `ermod_lin`)
 #' @param data an optional data frame to derive the covariate values for
 #' forest plots. If NULL (default), the data used to fit the model is used.
 #' @param spec_coveff you can supply spec_coveff to [sim_coveff()] or
@@ -15,7 +15,8 @@
 #' covariates in the forest plot. Default is 0.9 (i.e. visualize effect of
 #' covariate effect at their 5th and 95th percentile values).
 #' @return A data frame with class `coveffsim` containing the median and
-#' quantile interval of the covariate effects.
+#' quantile interval of the covariate effects. For binary models (`ermod_bin`),
+#' returns odds ratios. For linear models (`ermod_lin`), returns response differences.
 #'
 #' @examplesIf BayesERtools:::.if_run_ex_coveff()
 #' \donttest{
@@ -29,6 +30,18 @@
 #' )
 #'
 #' sim_coveff(ermod_bin)
+#'
+#' # Linear regression model example
+#' data(d_sim_lin)
+#'
+#' ermod_lin <- dev_ermod_lin(
+#'   data = d_sim_lin,
+#'   var_resp = "response",
+#'   var_exposure = "AUCss",
+#'   var_cov = c("SEX", "BAGE"),
+#' )
+#'
+#' sim_coveff(ermod_lin)
 #' }
 #'
 sim_coveff <- function(
@@ -71,8 +84,16 @@ sim_coveff <- function(
       linpred_draws_2 |>
       dplyr::mutate(.odds_ratio = exp(.delta_linpred)) |>
       dplyr::select(-.linpred, -.linpred_ref, -.delta_linpred)
+  } else if (inherits(ermod, "ermod_lin")) {
+    linpred_draws_3 <-
+      linpred_draws_2 |>
+      dplyr::mutate(.response_diff = .delta_linpred) |>
+      dplyr::select(-.linpred, -.linpred_ref, -.delta_linpred)
   } else {
-    stop("Only binary E-R model (`ermod_bin`) is supported for now")
+    stop(
+      "Only binary E-R model (`ermod_bin`) and linear E-R model ",
+      "(`ermod_lin`) are supported for now"
+    )
   }
 
   if (output_type == "draws") {
@@ -84,9 +105,18 @@ sim_coveff <- function(
     tidybayes::median_qi(.width = qi_width) |>
     dplyr::arrange(var_order, value_order)
 
+  # Determine which columns to select based on model type
+  if (inherits(ermod, "ermod_bin")) {
+    effect_col <- ".odds_ratio"
+    ref_value <- 1
+  } else {
+    effect_col <- ".response_diff"
+    ref_value <- 0
+  }
+
   linpred_med_qi_to_join <-
     linpred_med_qi |>
-    dplyr::select(var_order, value_order, .odds_ratio, .lower, .upper)
+    dplyr::select(var_order, value_order, !!effect_col, .lower, .upper)
 
   coveffsim <-
     spec_coveff |>
@@ -95,11 +125,12 @@ sim_coveff <- function(
       by = dplyr::join_by(var_order, value_order)
     ) |>
     dplyr::mutate(
-      .odds_ratio = ifelse(is_ref_value, 1, .odds_ratio)
+      !!effect_col := ifelse(is_ref_value, ref_value, !!rlang::sym(effect_col))
     )
 
-  # Add coveffsim class
+  # Add coveffsim class and model attribute
   class(coveffsim) <- c("coveffsim", class(coveffsim))
+  attr(coveffsim, "model_type") <- if (inherits(ermod, "ermod_bin")) "binary" else "linear"
 
   return(coveffsim)
 }
@@ -113,7 +144,9 @@ sim_coveff <- function(
 #' or their subclasses
 #' @param ... currently not used
 #'
-#' @return A ggplot object
+#' @return A ggplot object. For binary models (`ermod_bin`), plots odds ratios
+#' on a log scale with reference line at 1. For linear models (`ermod_lin`),
+#' plots response differences on a linear scale with reference line at 0.
 #'
 #' @examplesIf BayesERtools:::.if_run_ex_coveff()
 #' \donttest{
@@ -127,6 +160,18 @@ sim_coveff <- function(
 #' )
 #'
 #' plot_coveff(ermod_bin)
+#'
+#' # Linear regression model example
+#' data(d_sim_lin)
+#'
+#' ermod_lin <- dev_ermod_lin(
+#'   data = d_sim_lin,
+#'   var_resp = "response",
+#'   var_exposure = "AUCss",
+#'   var_cov = c("SEX", "BAGE"),
+#' )
+#'
+#' plot_coveff(ermod_lin)
 #' }
 #'
 plot_coveff <- function(x, ...) UseMethod("plot_coveff")
@@ -157,6 +202,9 @@ plot_coveff.coveffsim <- function(x, ...) {
 
   coveffsim <- x
 
+  # Get model information from attributes
+  is_binary_model <- attr(coveffsim, "model_type") == "binary"
+
   coveffsim_for_plot <-
     coveffsim |>
     # Only show ref value if show_ref_value is TRUE
@@ -171,23 +219,36 @@ plot_coveff.coveffsim <- function(x, ...) {
       value_label_plot = paste0(var_label, ": ", value_label)
     ) |>
     dplyr::mutate(
-      .lower = ifelse(is_ref_value, 1, .lower),
-      .upper = ifelse(is_ref_value, 1, .upper)
+      .lower = ifelse(is_ref_value, ifelse(is_binary_model, 1, 0), .lower),
+      .upper = ifelse(is_ref_value, ifelse(is_binary_model, 1, 0), .upper)
     )
+
+  # Choose appropriate aesthetic and scale based on model type
+  if (is_binary_model) {
+    x_aes <- ggplot2::aes(x = .odds_ratio, y = var_value_index_num)
+    x_scale <- xgxr::xgx_scale_x_log10(guide = ggplot2::guide_axis(minor.ticks = TRUE))
+    x_lab <- "Odds ratio"
+    x_intercept <- 1
+  } else {
+    x_aes <- ggplot2::aes(x = .response_diff, y = var_value_index_num)
+    x_scale <- ggplot2::scale_x_continuous()
+    x_lab <- "Response difference"
+    x_intercept <- 0
+  }
 
   gg <-
     coveffsim_for_plot |>
-    ggplot2::ggplot(ggplot2::aes(x = .odds_ratio, y = var_value_index_num)) +
+    ggplot2::ggplot(x_aes) +
     ggplot2::geom_point(size = 4) +
     ggplot2::geom_errorbar(
       ggplot2::aes(xmin = .lower, xmax = .upper),
       orientation = "y",
       width = 0.3
     ) +
-    ggplot2::geom_vline(xintercept = 1, linetype = "dashed") +
-    xgxr::xgx_scale_x_log10(guide = ggplot2::guide_axis(minor.ticks = TRUE)) +
+    ggplot2::geom_vline(xintercept = x_intercept, linetype = "dashed") +
+    x_scale +
     ggforce::facet_col(~var_label, scales = "free_y", space = "free") +
-    ggplot2::labs(x = "Odds ratio") +
+    ggplot2::labs(x = x_lab) +
     ggplot2::scale_y_continuous(
       breaks = coveffsim_for_plot$var_value_index_num,
       labels = coveffsim_for_plot$value_label_plot,
@@ -215,7 +276,7 @@ plot_coveff.coveffsim <- function(x, ...) {
 #' @param coveffsim an object of class `coveffsim`
 #' @details
 #' Note that `n_sigfig`, `use_seps`, and `drop_trailing_dec_mark` are only
-#' applied to the odds ratio and 95% CI columns; value_label column was
+#' applied to the response difference/odds ratio and 95% CI columns; value_label column was
 #' already generated in an earlier step in [build_spec_coveff()] or
 #' [sim_coveff()].
 #' @return A data frame with the formatted covariate effect simulation results
@@ -223,7 +284,8 @@ plot_coveff.coveffsim <- function(x, ...) {
 #' - `var_label`: the label of the covariate
 #' - `value_label`: the label of the covariate value
 #' - `value_annot`: the annotation of the covariate value
-#' - `Odds ratio`: the odds ratio of the covariate effect
+#' - `Odds ratio` or `Response difference`: the odds ratio (for binary models) or
+#'   response difference (for linear models) of the covariate effect
 #' - `95% CI`: the 95% credible interval of the covariate effect
 #'
 #' @examplesIf BayesERtools:::.if_run_ex_coveff()
@@ -238,21 +300,45 @@ plot_coveff.coveffsim <- function(x, ...) {
 #' )
 #'
 #' print_coveff(sim_coveff(ermod_bin))
+#'
+#' # Linear regression model example
+#' data(d_sim_lin)
+#'
+#' ermod_lin <- dev_ermod_lin(
+#'   data = d_sim_lin,
+#'   var_resp = "response",
+#'   var_exposure = "AUCss",
+#'   var_cov = c("SEX", "BAGE"),
+#' )
+#'
+#' print_coveff(sim_coveff(ermod_lin))
 #' }
 #'
 print_coveff <- function(
     coveffsim, n_sigfig = 3, use_seps = TRUE, drop_trailing_dec_mark = TRUE) {
   rlang::check_installed("gt")
 
+  # Get model information from attributes
+  is_binary_model <- attr(coveffsim, "model_type") == "binary"
+
   coveffsim_non_ref <-
     coveffsim |>
     dplyr::filter(!is_ref_value)
 
   # Format values for printing in non-reference rows
+  effect_col <- if (is_binary_model) ".odds_ratio" else ".response_diff"
+  if (is_binary_model) {
+    cols_to_format <- c(".odds_ratio", ".lower", ".upper")
+    effect_col_name <- "Odds ratio"
+  } else {
+    cols_to_format <- c(".response_diff", ".lower", ".upper")
+    effect_col_name <- "Response difference"
+  }
+
   coveffsim_non_ref <-
     coveffsim_non_ref |>
     dplyr::mutate(dplyr::across(
-      .cols = c(.odds_ratio, .lower, .upper),
+      .cols = dplyr::all_of(cols_to_format),
       .fns = function(x) {
         gt::vec_fmt_number(x,
           n_sigfig = n_sigfig,
@@ -265,19 +351,19 @@ print_coveff <- function(
     coveffsim_non_ref <-
       coveffsim_non_ref |>
       dplyr::mutate(dplyr::across(
-        .cols = c(.odds_ratio, .lower, .upper),
+        .cols = dplyr::all_of(cols_to_format),
         .fns = function(x) sub("\\.$", "", x)
       ))
   }
 
-  # Format reference rows (set odds ratio to 1 and blank for 95% CI)
+  # Format reference rows (set effect to reference value and blank for 95% CI)
   coveffsim_2 <-
     coveffsim |>
     # Only show ref value if show_ref_value is TRUE
     dplyr::filter(is_ref_value & show_ref_value) |>
-    dplyr::mutate( # .odds_ratio = as.character(.odds_ratio),)|>
+    dplyr::mutate(
       dplyr::across(
-        .cols = c(.odds_ratio, .lower, .upper),
+        .cols = dplyr::all_of(cols_to_format),
         .fns = as.character
       )
     ) |>
@@ -286,7 +372,7 @@ print_coveff <- function(
 
   coveffsim_2 |>
     dplyr::mutate(
-      `Odds ratio` = .odds_ratio,
+      !!effect_col_name := !!rlang::sym(effect_col),
       `95% CI` =
         dplyr::if_else(is_ref_value, " ",
           paste0("[", .lower, ", ", .upper, "]")
@@ -294,7 +380,7 @@ print_coveff <- function(
     ) |>
     dplyr::select(
       var_label, value_label, value_annot,
-      `Odds ratio`, `95% CI`
+      !!effect_col_name, `95% CI`
     )
 }
 

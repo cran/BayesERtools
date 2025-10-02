@@ -25,8 +25,26 @@ if (.if_run_ex_coveff()) {
   coveffsim <- sim_coveff(ermod_bin)
   coveffsim_2 <- sim_coveff(ermod_bin, spec_coveff = spec_coveff)
 
+  # Linear regression model tests ---------------------------------------------
+  data(d_sim_lin)
+
+  set.seed(1234)
+  ermod_lin <- dev_ermod_lin(
+    data = d_sim_lin,
+    var_resp = "response",
+    var_exposure = "AUCss",
+    var_cov = c("SEX", "BAGE"),
+    verbosity_level = 0,
+    # Below option to make the test fast
+    chains = 2, iter = 1000
+  )
+
+  spec_coveff_lin <- build_spec_coveff(ermod_lin)
+  coveffsim_lin <- sim_coveff(ermod_lin)
+  coveffsim_lin_2 <- sim_coveff(ermod_lin, spec_coveff = spec_coveff_lin)
+
   # Tests ---------------------------------------------------------------------
-  test_that("sim_coveff", {
+  test_that("sim_coveff binary model", {
     expect_equal(coveffsim, coveffsim_2)
     expect_equal(dim(coveffsim), c(14, 12))
     expect_equal(
@@ -37,9 +55,23 @@ if (.if_run_ex_coveff()) {
         3.93067614853305, 1, 2.77732164370792, 2.05372376449102, 1, 0.46514853
       )
     )
+
+    # Test model type attribute
+    expect_equal(attr(coveffsim, "model_type"), "binary")
   })
 
-  test_that("plot_coveff", {
+  test_that("sim_coveff linear model", {
+    expect_equal(coveffsim_lin, coveffsim_lin_2)
+    expect_equal(dim(coveffsim_lin), c(8, 12))
+    expect_true(".response_diff" %in% colnames(coveffsim_lin))
+    expect_true(all(!is.na(coveffsim_lin$.response_diff)))
+    expect_true(all(coveffsim_lin$.response_diff[coveffsim_lin$is_ref_value] == 0))
+
+    # Test model type attribute
+    expect_equal(attr(coveffsim_lin, "model_type"), "linear")
+  })
+
+  test_that("plot_coveff binary model", {
     g1 <- plot_coveff(coveffsim) |>
       expect_silent()
     g2 <- plot_coveff(ermod_bin) |>
@@ -55,7 +87,23 @@ if (.if_run_ex_coveff()) {
     expect_equal(dim(g3$data), c(9, 14))
   })
 
-  test_that("print_coveff", {
+  test_that("plot_coveff linear model", {
+    g1 <- plot_coveff(coveffsim_lin) |>
+      expect_silent()
+    g2 <- plot_coveff(ermod_lin) |>
+      expect_silent()
+    g3 <-
+      coveffsim_lin |>
+      dplyr::mutate(show_ref_value = FALSE) |>
+      plot_coveff() |>
+      expect_silent()
+
+    expect_equal(dim(g1$data), c(8, 14))
+    expect_equal(dim(g2$data), c(8, 14))
+    expect_equal(dim(g3$data), c(5, 14))
+  })
+
+  test_that("print_coveff binary model", {
     table_coveff <- print_coveff(coveffsim)
 
     expect_equal(
@@ -67,14 +115,34 @@ if (.if_run_ex_coveff()) {
     )
   })
 
+  test_that("print_coveff linear model", {
+    table_coveff_lin <- print_coveff(coveffsim_lin)
 
-  test_that("build_spec_coveff", {
+    expect_equal(
+      table_coveff_lin$`Response difference`,
+      c(
+        "−20.5", "0", "20.5", "0", "−4.04", "−8.50", "0", "8.34"
+      )
+    )
+  })
+
+  test_that("build_spec_coveff binary model", {
     expect_equal(dim(spec_coveff), c(14, 11))
     expect_equal(
       spec_coveff$value_label,
       c(
         "0.824", "2.31", "4.80", "6.01", "8.19", "10.3", "4.42", "6.09",
         "7.28", "White", "Asian", "Black", "No", "Yes"
+      )
+    )
+  })
+
+  test_that("build_spec_coveff linear model", {
+    expect_equal(dim(spec_coveff_lin), c(8, 11))
+    expect_equal(
+      spec_coveff_lin$value_label,
+      c(
+        "5.00", "50.0", "95.0", "F", "M", "33.5", "50.4", "67.0"
       )
     )
   })

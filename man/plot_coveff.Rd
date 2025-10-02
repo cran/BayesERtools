@@ -40,7 +40,9 @@ covariates in the forest plot. Default is 0.9 (i.e. visualize effect of
 covariate effect at their 5th and 95th percentile values).}
 }
 \value{
-A ggplot object
+A ggplot object. For binary models (\code{ermod_bin}), plots odds ratios
+on a log scale with reference line at 1. For linear models (\code{ermod_lin}),
+plots response differences on a linear scale with reference line at 0.
 }
 \description{
 Visualize the covariate effects for ER model
@@ -58,6 +60,18 @@ ermod_bin <- dev_ermod_bin(
 )
 
 plot_coveff(ermod_bin)
+
+# Linear regression model example
+data(d_sim_lin)
+
+ermod_lin <- dev_ermod_lin(
+  data = d_sim_lin,
+  var_resp = "response",
+  var_exposure = "AUCss",
+  var_cov = c("SEX", "BAGE"),
+)
+
+plot_coveff(ermod_lin)
 }
 \dontshow{\}) # examplesIf}
 }
