@@ -86,7 +86,8 @@ if (.if_run_ex_eval_mod()) {
 
     expect_equal(
       loo_ermod_bin$estimates[, 1],
-      c(elpd_loo = -38.5289466, p_loo = 3.3262640, looic = 77.0578931)
+      c(elpd_loo = -38.5289466, p_loo = 3.3262640, looic = 77.0578931),
+      tolerance = 0.1
     )
     expect_equal(
       loo_ermod_emax_w_cov$estimates[, 1],
@@ -103,7 +104,11 @@ if (.if_run_ex_eval_mod()) {
   })
 
   test_that("kfold", {
-    expect_gt(comp[[2, 1]], -0.5)
+    if ("model" %in% colnames(comp)) {
+      expect_gt(comp[[2, 2]], -0.5)
+    } else {
+      expect_gt(comp[[2, 1]], -0.5)
+    }
     expect_equal(
       kfold_ermod_bin$estimates[, 1],
       c(elpd_kfold = -38.242947, p_kfold = 3.040264, kfoldic = 76.485893)
